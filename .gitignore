@@ -37,3 +37,12 @@ volumes/
 
 # Run traces (one JSONL per run, FR-009) — audit artefacts, not source
 logs/
+
+# Terraform / OpenTofu working state — never committed
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+crash.log
+*.tfvars
+!*.tfvars.example
