@@ -6,7 +6,7 @@ from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-Provider = Literal["vertex", "local", "fake"]
+Provider = Literal["vertex", "gemini", "local", "fake"]
 
 
 class Settings(BaseSettings):
@@ -23,6 +23,15 @@ class Settings(BaseSettings):
     vertex_location: str = "europe-west1"
     vertex_model: str = "gemini-3.5-flash"
     vertex_embed_model: str = "gemini-embedding-2"
+
+    # Gemini Developer API: same models as Vertex, reached with an API key rather
+    # than gcloud ADC. The pragmatic path for a laptop demo.
+    gemini_api_key: str = ""
+    # An alias rather than a pinned version: which pinned models a key can serve
+    # depends on its tier (gemini-2.5-flash now 404s, gemini-3.5-flash 503s on a
+    # free key). The alias always resolves to the current stable flash model.
+    gemini_model: str = "gemini-flash-latest"
+    gemini_embed_model: str = "gemini-embedding-2"
 
     # Left unset on purpose: embedding width is a property of the configured model,
     # so it is discovered from the first vector rather than guessed here. Pin it only

@@ -177,10 +177,133 @@ class LocalProvider:
         return [item["embedding"] for item in response.json()["data"]]
 
 
+GEMINI_API = "https://generativelanguage.googleapis.com/v1beta"
+GEMINI_ATTEMPTS = 3
+GEMINI_BACKOFF = 1.0
+# 503 = model overloaded. Not 429: that is quota, and retrying makes it worse.
+_RETRIABLE_STATUS = {503}
+
+# Gemini's responseSchema is an OpenAPI 3.0 subset. Pydantic emits JSON Schema,
+# which carries keys Gemini rejects outright with a 400.
+_SCHEMA_KEYS = {"type", "properties", "required", "items", "enum", "description", "nullable"}
+
+
+def _response_schema(schema: type[BaseModel]) -> dict:
+    """Translate a Pydantic model into a schema Gemini will accept."""
+    root = schema.model_json_schema()
+    return _prune(root, root.get("$defs", {}))
+
+
+def _prune(node: dict, defs: dict) -> dict:
+    if ref := node.get("$ref"):
+        node = {**defs[ref.rsplit("/", 1)[-1]], **{k: v for k, v in node.items() if k != "$ref"}}
+
+    out = {key: value for key, value in node.items() if key in _SCHEMA_KEYS}
+    if properties := node.get("properties"):
+        out["properties"] = {name: _prune(sub, defs) for name, sub in properties.items()}
+    if items := node.get("items"):
+        out["items"] = _prune(items, defs)
+    return out
+
+
+def _contents(messages: list[Message]) -> tuple[str, list[dict]]:
+    """Split the system prompt out: Gemini carries it out-of-band, not as a turn."""
+    system = " ".join(m["content"] for m in messages if m["role"] == "system")
+    turns = [
+        {"role": "model" if m["role"] == "assistant" else "user", "parts": [{"text": m["content"]}]}
+        for m in messages
+        if m["role"] != "system"
+    ]
+    return system, turns
+
+
+class GeminiProvider:
+    """Gemini via the Developer API — an API key, no gcloud ADC.
+
+    Talks HTTP directly for the same reason `LocalProvider` does: no vendor SDK,
+    and the provider seam stays honest.
+    """
+
+    def __init__(self, settings: Settings) -> None:
+        self._settings = settings
+
+    def _key(self) -> str:
+        if not self._settings.gemini_api_key:
+            raise ValueError("GEMINI_API_KEY is empty; set it in .env or the environment")
+        return self._settings.gemini_api_key
+
+    def _post(self, path: str, payload: dict) -> dict:
+        """Retry only what retrying can fix.
+
+        Under load the endpoint answers 503, or drops the connection outright.
+        Both are transient. A 4xx is our own bug and retrying it only burns quota.
+        """
+        import time
+
+        import httpx
+
+        for attempt in range(1, GEMINI_ATTEMPTS + 1):
+            last = attempt == GEMINI_ATTEMPTS
+            try:
+                response = httpx.post(
+                    f"{GEMINI_API}/{path}",
+                    headers={"x-goog-api-key": self._key(), "Content-Type": "application/json"},
+                    json=payload,
+                    timeout=120.0,
+                )
+                if response.status_code in _RETRIABLE_STATUS and not last:
+                    time.sleep(GEMINI_BACKOFF * attempt)
+                    continue
+                response.raise_for_status()
+                return response.json()
+            except httpx.TransportError:
+                if last:
+                    raise
+                time.sleep(GEMINI_BACKOFF * attempt)
+        raise RuntimeError("unreachable")
+
+    def complete(self, messages: list[Message], schema: type[BaseModel]) -> BaseModel:
+        system, turns = _contents(messages)
+        payload: dict[str, Any] = {
+            "contents": turns,
+            "generationConfig": {
+                "responseMimeType": "application/json",
+                "responseSchema": _response_schema(schema),
+            },
+        }
+        if system:
+            payload["systemInstruction"] = {"parts": [{"text": system}]}
+
+        body = self._post(f"models/{self._settings.gemini_model}:generateContent", payload)
+        text = body["candidates"][0]["content"]["parts"][0]["text"]
+        return schema.model_validate_json(text)
+
+    def embed(self, texts: list[str]) -> list[list[float]]:
+        model = f"models/{self._settings.gemini_embed_model}"
+        request: dict[str, Any] = {"model": model, "content": {}}
+        if self._settings.embed_dim:
+            request["outputDimensionality"] = self._settings.embed_dim
+
+        body = self._post(
+            f"{model}:batchEmbedContents",
+            {"requests": [{**request, "content": {"parts": [{"text": text}]}} for text in texts]},
+        )
+        # Matryoshka truncation leaves vectors off the unit sphere; cosine
+        # similarity in pgvector assumes they are on it.
+        return [_normalise(item["values"]) for item in body["embeddings"]]
+
+
+def _normalise(vector: list[float]) -> list[float]:
+    norm = math.sqrt(sum(v * v for v in vector))
+    return [v / norm for v in vector] if norm else vector
+
+
 def get_provider(settings: Settings | None = None) -> LLMProvider:
     settings = settings or get_settings()
     if settings.llm_provider == "fake":
         return FakeProvider(dim=settings.embed_dim or EMBED_DIM)
+    if settings.llm_provider == "gemini":
+        return GeminiProvider(settings)
     if settings.llm_provider == "local":
         return LocalProvider(settings)
     return VertexProvider(settings)
