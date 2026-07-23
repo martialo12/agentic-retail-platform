@@ -1,0 +1,17 @@
+id: customer-assistant
+model: gemini-3.5-flash
+owner: martial.wafo@example.com
+prompt_path: prompt.md
+# Read-only by declaration: write_enrichment is deliberately absent, and the
+# policy layer — not this agent's own code — is what enforces the omission.
+allowed_tools:
+  - lookup_order
+  - get_product
+  - search_catalog
+escalation:
+  min_confidence: 0.6
+  sensitive_intents:
+    - remboursement
+    - litige
+    - résiliation
+    - réclamation
