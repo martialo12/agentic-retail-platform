@@ -1,0 +1,9 @@
+id: unknown-tool
+model: gemini-1.5-pro
+owner: martial.wafo@example.com
+prompt_path: prompts/demo.md
+allowed_tools:
+  - search_catalog
+  - drop_database
+escalation:
+  min_confidence: 0.7

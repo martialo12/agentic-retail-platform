@@ -1,0 +1,7 @@
+id: missing-field
+owner: martial.wafo@example.com
+prompt_path: prompts/demo.md
+allowed_tools:
+  - search_catalog
+escalation:
+  min_confidence: 0.7

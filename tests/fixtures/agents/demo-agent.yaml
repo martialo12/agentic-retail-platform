@@ -1,0 +1,11 @@
+id: demo-agent
+model: gemini-1.5-pro
+owner: martial.wafo@example.com
+prompt_path: prompts/demo.md
+allowed_tools:
+  - search_catalog
+  - get_product
+escalation:
+  min_confidence: 0.7
+  sensitive_intents:
+    - refund
