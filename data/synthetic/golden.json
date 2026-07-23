@@ -1,0 +1,77 @@
+[
+  {
+    "sheet": {
+      "id": "p003",
+      "title": "Étagère murale modulable en pin",
+      "specs": {}
+    },
+    "reference": {
+      "category": "mobilier",
+      "materials": [
+        "pin"
+      ]
+    }
+  },
+  {
+    "sheet": {
+      "id": "p006",
+      "title": "Lampe de bureau articulée",
+      "specs": {}
+    },
+    "reference": {
+      "category": "luminaire"
+    }
+  },
+  {
+    "sheet": {
+      "id": "p009",
+      "title": "Lampadaire trépied en bois clair",
+      "specs": {}
+    },
+    "reference": {
+      "category": "luminaire",
+      "materials": [
+        "bois clair"
+      ]
+    }
+  },
+  {
+    "sheet": {
+      "id": "p012",
+      "title": "Rideau occultant en polyester recyclé",
+      "specs": {}
+    },
+    "reference": {
+      "category": "textile",
+      "materials": [
+        "polyester recyclé"
+      ]
+    }
+  },
+  {
+    "sheet": {
+      "id": "p015",
+      "title": "Set de couteaux en acier inoxydable",
+      "specs": {}
+    },
+    "reference": {
+      "category": "cuisine",
+      "materials": [
+        "acier inoxydable"
+      ]
+    }
+  },
+  {
+    "sheet": {
+      "id": "p018",
+      "title": "Boîte de rangement empilable en polypropylène",
+      "specs": {}
+    },
+    "reference": {
+      "category": "rangement",
+      "materials": [
+        "polypropylène"
+      ]
+    }
+  }
+]

@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 
 OUT = Path(__file__).resolve().parents[1] / "data" / "synthetic" / "catalogue.json"
+GOLDEN_OUT = OUT.parent / "golden.json"
 
 CATEGORIES = {
     "mobilier": [
@@ -53,32 +54,49 @@ def _title(template: str, specs: dict[str, str]) -> str:
     return " ".join(template.format(matiere=specs.get("matiere", "")).split())
 
 
-def build() -> list[dict]:
+def build() -> tuple[list[dict], list[dict]]:
     """Every third item ships with an empty spec map: those are the incomplete
-    sheets the product-enricher exists to complete."""
-    items = []
+    sheets the product-enricher exists to complete.
+
+    The generator knows the truth it withheld, so the golden set is produced
+    here rather than hand-written — reference answers cannot drift from the corpus.
+    """
+    items: list[dict] = []
+    golden: list[dict] = []
     index = 0
     for category, templates in CATEGORIES.items():
         for title_tpl, specs in templates:
             index += 1
             incomplete = index % 3 == 0
+            title = _title(title_tpl, specs)
             items.append(
                 {
                     "id": f"p{index:03d}",
-                    "title": _title(title_tpl, specs),
+                    "title": title,
                     "specs": {} if incomplete else specs,
                     "category": None if incomplete else category,
                 }
             )
-    return items
+            if incomplete:
+                reference = {"category": category}
+                if specs.get("matiere"):
+                    reference["materials"] = [specs["matiere"]]
+                golden.append(
+                    {
+                        "sheet": {"id": f"p{index:03d}", "title": title, "specs": {}},
+                        "reference": reference,
+                    }
+                )
+    return items, golden
 
 
 def main() -> None:
-    items = build()
+    items, golden = build()
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(items, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    incomplete = sum(1 for i in items if not i["specs"])
-    print(f"wrote {len(items)} items ({incomplete} incomplete) to {OUT}")
+    GOLDEN_OUT.write_text(json.dumps(golden, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(f"wrote {len(items)} items to {OUT}")
+    print(f"wrote {len(golden)} golden entries to {GOLDEN_OUT}")
 
 
 if __name__ == "__main__":
