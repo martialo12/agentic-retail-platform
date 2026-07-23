@@ -1,10 +1,13 @@
 # Claude Code local config — intentionally NOT committed
 .claude/
 
-# Specs & docs — kept local, intentionally NOT committed
+# The spec is the source of truth (see CLAUDE.md), so it is versioned — an
+# unreviewable spec cannot govern anything. Working notes stay local.
 .specify/
-specs/
-docs/
+docs/*
+!docs/superpowers/
+docs/superpowers/*
+!docs/superpowers/specs/
 CLAUDE.md
 README.md
 
