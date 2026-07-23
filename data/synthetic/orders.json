@@ -1,0 +1,110 @@
+[
+  {
+    "id": "o001",
+    "status": "en préparation",
+    "product_ids": [
+      "p001",
+      "p002"
+    ],
+    "customer_ref": "c-001"
+  },
+  {
+    "id": "o002",
+    "status": "expédiée",
+    "product_ids": [
+      "p003",
+      "p004",
+      "p005"
+    ],
+    "customer_ref": "c-002"
+  },
+  {
+    "id": "o003",
+    "status": "livrée",
+    "product_ids": [
+      "p005"
+    ],
+    "customer_ref": "c-003"
+  },
+  {
+    "id": "o004",
+    "status": "en attente de paiement",
+    "product_ids": [
+      "p007",
+      "p008"
+    ],
+    "customer_ref": "c-004"
+  },
+  {
+    "id": "o005",
+    "status": "annulée",
+    "product_ids": [
+      "p009",
+      "p010",
+      "p011"
+    ],
+    "customer_ref": "c-005"
+  },
+  {
+    "id": "o006",
+    "status": "retour en cours",
+    "product_ids": [
+      "p011"
+    ],
+    "customer_ref": "c-001"
+  },
+  {
+    "id": "o007",
+    "status": "en préparation",
+    "product_ids": [
+      "p013",
+      "p014"
+    ],
+    "customer_ref": "c-002"
+  },
+  {
+    "id": "o008",
+    "status": "expédiée",
+    "product_ids": [
+      "p015",
+      "p016",
+      "p017"
+    ],
+    "customer_ref": "c-003"
+  },
+  {
+    "id": "o009",
+    "status": "livrée",
+    "product_ids": [
+      "p017"
+    ],
+    "customer_ref": "c-004"
+  },
+  {
+    "id": "o010",
+    "status": "en attente de paiement",
+    "product_ids": [
+      "p019",
+      "p020"
+    ],
+    "customer_ref": "c-005"
+  },
+  {
+    "id": "o011",
+    "status": "annulée",
+    "product_ids": [
+      "p001",
+      "p002",
+      "p003"
+    ],
+    "customer_ref": "c-001"
+  },
+  {
+    "id": "o012",
+    "status": "retour en cours",
+    "product_ids": [
+      "p003"
+    ],
+    "customer_ref": "c-002"
+  }
+]
