@@ -30,7 +30,7 @@ def build_enricher(
         prepare=make_prepare(retriever, tracer),
         draft=make_draft(provider, prompt, tracer),
         check=confidence_gate(spec.escalation.min_confidence, tracer),
-        emit=make_emit(client, tracer),
+        emit=make_emit(client, tracer, spec.escalation.min_confidence),
         escalate=make_escalate(tracer),
         state_schema=EnricherState,
     )

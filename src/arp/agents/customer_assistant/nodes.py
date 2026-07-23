@@ -142,7 +142,15 @@ def make_emit(tracer: RunTracer | None):
     async def emit(state: AssistantState) -> dict:
         reply = state["draft"]
         if tracer is not None:
-            tracer.event(EventKind.OUTPUT, valid=True, tools=state.get("tools_used", []))
+            # The answer travels on the output event so a live consumer can show
+            # it without re-reading the run record. Auditability is unchanged: the
+            # same text is already in the JSONL via this event.
+            tracer.event(
+                EventKind.OUTPUT,
+                valid=True,
+                tools=state.get("tools_used", []),
+                answer=reply.answer,
+            )
         return {"output": reply, "escalated": False}
 
     return emit
