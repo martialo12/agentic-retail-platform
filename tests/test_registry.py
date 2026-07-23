@@ -57,3 +57,18 @@ def test_spec_is_immutable():
     spec = load_agent("demo-agent", FIXTURES)
     with pytest.raises(ValidationError):
         spec.allowed_tools = ["write_enrichment"]
+
+
+def test_loads_a_spec_from_the_folder_layout():
+    """An agent is a folder; its hyphenated id maps onto the underscored package."""
+    from arp.agents import AGENTS_DIR
+
+    assert load_agent("product-enricher", AGENTS_DIR).id == "product-enricher"
+
+
+def test_prompt_is_resolved_relative_to_the_agent_folder():
+    from arp.agents import AGENTS_DIR
+    from arp.registry import prompt_for
+
+    spec = load_agent("product-enricher", AGENTS_DIR)
+    assert prompt_for(spec, AGENTS_DIR).strip()

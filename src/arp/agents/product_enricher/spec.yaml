@@ -1,0 +1,10 @@
+id: product-enricher
+model: gemini-3.1-pro
+owner: martial.wafo@example.com
+prompt_path: prompt.md
+allowed_tools:
+  - search_catalog
+  - get_product
+  - write_enrichment
+escalation:
+  min_confidence: 0.7
