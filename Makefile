@@ -1,8 +1,9 @@
-.PHONY: setup setup-agents lint test up down ingest eval docker tf-validate k8s-validate iac
+.PHONY: setup setup-agents lint test up down ingest eval serve serve-docker docker tf-validate k8s-validate iac
 
 # OpenTofu is the default; export TF=terraform to use HashiCorp Terraform instead.
 TF ?= tofu
 K8S_VERSION ?= 1.30.0
+PORT ?= 8080
 
 # src-layout, stated once. pytest already declares it via `pythonpath`; the
 # module entrypoints need the same, so they no longer depend on the editable
@@ -17,7 +18,11 @@ up:               ; docker compose up -d
 down:             ; docker compose down
 ingest:           ; $(RUN) python -m arp.rag.ingest
 eval:             ; $(RUN) python -m arp.llmops.eval
+serve:            ; $(RUN) python -m arp.mcp
 docker:           ; docker build -t arp:local .
+# Same entrypoint, but through the image that ships to Cloud Run / GKE.
+serve-docker: docker
+	docker run --rm -p $(PORT):8080 --env-file .env -e DATA_DIR=/app/data/synthetic arp:local
 tf-validate:      ; $(TF) -chdir=infra/terraform init -backend=false -input=false && $(TF) -chdir=infra/terraform validate && $(TF) -chdir=infra/terraform fmt -check -recursive
 # Schema-validates against upstream OpenAPI, so no cluster is needed.
 k8s-validate:     ; docker run --rm -v "$(CURDIR)/infra/k8s:/work:ro" ghcr.io/yannh/kubeconform:latest -strict -summary -kubernetes-version $(K8S_VERSION) /work
