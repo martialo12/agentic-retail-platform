@@ -1,0 +1,19 @@
+# Non-secret runtime configuration. Anything with a credential in it belongs in
+# the Secret instead (see secret.example.yaml).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: arp-config
+  labels:
+    app.kubernetes.io/name: arp-mcp
+    app.kubernetes.io/part-of: agentic-retail-platform
+data:
+  LLM_PROVIDER: "vertex"
+  VERTEX_PROJECT: "your-gcp-project"
+  VERTEX_LOCATION: "europe-west1"
+  VERTEX_MODEL: "gemini-3.5-flash"
+  VERTEX_EMBED_MODEL: "gemini-embedding-2"
+  # The image installs the package outside the repo tree, so the corpus path is
+  # explicit. Must match the Dockerfile.
+  DATA_DIR: "/app/data/synthetic"
+  PORT: "8080"

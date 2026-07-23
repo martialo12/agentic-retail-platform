@@ -1,0 +1,20 @@
+# ClusterIP on purpose: the MCP server is the door to business logic and is
+# never exposed directly. Front it with an authenticated gateway if it must
+# leave the cluster.
+apiVersion: v1
+kind: Service
+metadata:
+  name: arp-mcp
+  labels:
+    app.kubernetes.io/name: arp-mcp
+    app.kubernetes.io/component: tool-server
+    app.kubernetes.io/part-of: agentic-retail-platform
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: arp-mcp
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
