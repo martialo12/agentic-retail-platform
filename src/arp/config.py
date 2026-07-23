@@ -1,6 +1,7 @@
 """Runtime settings, sourced from the environment (see `.env.example`)."""
 
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -33,6 +34,11 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql://arp:arp@localhost:5432/arp"
     redis_url: str = "redis://localhost:6379/0"
+
+    # Where the synthetic corpus lives. The default holds for a source checkout;
+    # a packaged install (the container) puts `arp` outside the repo tree and
+    # therefore sets DATA_DIR explicitly.
+    data_dir: Path = Path(__file__).resolve().parents[2] / "data" / "synthetic"
 
 
 @lru_cache

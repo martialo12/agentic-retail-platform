@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from arp.config import Settings, get_settings
@@ -55,6 +57,18 @@ def test_embed_dim_is_unset_by_default(monkeypatch):
 def test_embed_dim_can_be_pinned(monkeypatch):
     monkeypatch.setenv("EMBED_DIM", "1536")
     assert get_settings().embed_dim == 1536
+
+
+def test_data_dir_defaults_to_the_repo_corpus(monkeypatch):
+    monkeypatch.delenv("DATA_DIR", raising=False)
+    data_dir = get_settings().data_dir
+    assert (data_dir / "catalogue.json").exists()
+
+
+def test_data_dir_is_overridable(monkeypatch):
+    """The packaged image installs `arp` outside the repo tree, so the corpus moves."""
+    monkeypatch.setenv("DATA_DIR", "/app/data/synthetic")
+    assert get_settings().data_dir == Path("/app/data/synthetic")
 
 
 def test_get_settings_is_cached():

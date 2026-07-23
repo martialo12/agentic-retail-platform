@@ -11,11 +11,9 @@ from arp.llm.provider import LLMProvider, get_provider
 from arp.models import CatalogueItem
 from arp.rag.store import VectorStore
 
-CATALOGUE_PATH = Path(__file__).resolve().parents[3] / "data" / "synthetic" / "catalogue.json"
-
 
 def load_catalogue(path: Path | None = None) -> list[CatalogueItem]:
-    raw = json.loads(Path(path or CATALOGUE_PATH).read_text(encoding="utf-8"))
+    raw = json.loads(Path(path or get_settings().data_dir / "catalogue.json").read_text("utf-8"))
     return [CatalogueItem.model_validate(entry) for entry in raw]
 
 

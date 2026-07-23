@@ -11,8 +11,9 @@ from arp.mcp.repository import Repository
 from arp.tools import GET_PRODUCT, LOOKUP_ORDER, SEARCH_CATALOG, WRITE_ENRICHMENT
 
 
-def build_server(repo: Repository, name: str = "arp-tools") -> FastMCP:
-    server = FastMCP(name)
+def build_server(repo: Repository, name: str = "arp-tools", **settings) -> FastMCP:
+    """Extra `settings` are FastMCP transport options (host, port, stateless_http)."""
+    server = FastMCP(name, **settings)
 
     def get_product(product_id: str) -> dict:
         """Fetch a single catalogue item by its identifier."""
