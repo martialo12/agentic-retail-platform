@@ -13,7 +13,7 @@ def test_loads_valid_spec():
     spec = load_agent("demo-agent", FIXTURES)
     assert isinstance(spec, AgentSpec)
     assert spec.id == "demo-agent"
-    assert spec.model == "gemini-1.5-pro"
+    assert spec.model == "gemini-3.5-flash"
     assert spec.allowed_tools == ["search_catalog", "get_product"]
     assert spec.owner == "martial.wafo@example.com"
     assert spec.prompt_path == "prompts/demo.md"

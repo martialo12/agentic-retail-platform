@@ -50,7 +50,7 @@ def main() -> None:
 
     settings = get_settings()
     items = load_catalogue()
-    store = PgVectorStore(settings.database_url)
+    store = PgVectorStore(settings.database_url, dim=settings.embed_dim)
     count = ingest(get_provider(settings), store, items)
     print(f"ingested {count} catalogue items into {settings.database_url}")
 

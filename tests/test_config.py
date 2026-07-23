@@ -38,7 +38,23 @@ def test_datastore_and_model_defaults(monkeypatch):
     assert s.database_url.startswith("postgresql://")
     assert s.redis_url.startswith("redis://")
     assert s.vertex_location == "europe-west1"
-    assert s.vertex_model == "gemini-1.5-pro"
+    assert s.vertex_model == "gemini-3.5-flash"
+
+
+def test_embedding_model_default_is_current(monkeypatch):
+    monkeypatch.delenv("VERTEX_EMBED_MODEL", raising=False)
+    assert get_settings().vertex_embed_model == "gemini-embedding-2"
+
+
+def test_embed_dim_is_unset_by_default(monkeypatch):
+    """Unset means 'discover the width from the model' rather than guess it."""
+    monkeypatch.delenv("EMBED_DIM", raising=False)
+    assert get_settings().embed_dim is None
+
+
+def test_embed_dim_can_be_pinned(monkeypatch):
+    monkeypatch.setenv("EMBED_DIM", "1536")
+    assert get_settings().embed_dim == 1536
 
 
 def test_get_settings_is_cached():

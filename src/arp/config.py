@@ -20,8 +20,13 @@ class Settings(BaseSettings):
 
     vertex_project: str = ""
     vertex_location: str = "europe-west1"
-    vertex_model: str = "gemini-1.5-pro"
-    vertex_embed_model: str = "text-embedding-004"
+    vertex_model: str = "gemini-3.5-flash"
+    vertex_embed_model: str = "gemini-embedding-2"
+
+    # Left unset on purpose: embedding width is a property of the configured model,
+    # so it is discovered from the first vector rather than guessed here. Pin it only
+    # to force a specific (e.g. Matryoshka-truncated) output width.
+    embed_dim: int | None = None
 
     local_llm_base_url: str = "http://localhost:11434/v1"
     local_llm_model: str = "llama3.1"

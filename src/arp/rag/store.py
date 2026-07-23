@@ -57,11 +57,14 @@ class InMemoryVectorStore:
 class PgVectorStore:
     """pgvector-backed store. SQL kept AlloyDB-compatible (no vendor extensions)."""
 
-    def __init__(self, dsn: str, table: str = "documents", dim: int = 768) -> None:
+    def __init__(self, dsn: str, table: str = "documents", dim: int | None = None) -> None:
+        """`dim=None` means: adopt whatever width the configured embedding model
+        emits. Hardcoding a width silently breaks the day the model changes."""
         self._dsn = dsn
         self._table = table
         self._dim = dim
-        self._ensure_schema()
+        if dim is not None:
+            self._ensure_schema(dim)
 
     def _connect(self):
         import psycopg
@@ -71,7 +74,7 @@ class PgVectorStore:
         register_vector(conn)
         return conn
 
-    def _ensure_schema(self) -> None:
+    def _ensure_schema(self, dim: int) -> None:
         import psycopg
 
         with psycopg.connect(self._dsn, autocommit=True) as conn:
@@ -81,9 +84,28 @@ class PgVectorStore:
                 "  id TEXT PRIMARY KEY,"
                 "  content TEXT NOT NULL,"
                 "  metadata JSONB NOT NULL DEFAULT '{}'::jsonb,"
-                f" embedding vector({self._dim})"
+                f" embedding vector({dim})"
                 ")"
             )
+
+    def dimension(self) -> int | None:
+        """Width the table was actually created with, or None if it does not exist."""
+        import psycopg
+
+        with psycopg.connect(self._dsn, autocommit=True) as conn:
+            row = conn.execute(
+                "SELECT a.atttypmod FROM pg_attribute a"
+                " JOIN pg_class c ON c.oid = a.attrelid"
+                " WHERE c.relname = %s AND a.attname = 'embedding'",
+                (self._table,),
+            ).fetchone()
+        return int(row[0]) if row else None
+
+    def drop(self) -> None:
+        import psycopg
+
+        with psycopg.connect(self._dsn, autocommit=True) as conn:
+            conn.execute(f"DROP TABLE IF EXISTS {self._table}")
 
     def reset(self) -> None:
         import psycopg
@@ -92,11 +114,24 @@ class PgVectorStore:
             conn.execute(f"TRUNCATE {self._table}")
 
     def __len__(self) -> int:
+        if self.dimension() is None:
+            return 0
         with self._connect() as conn:
             return conn.execute(f"SELECT count(*) FROM {self._table}").fetchone()[0]
 
     def upsert(self, id: str, text: str, embedding: list[float], metadata: dict) -> None:
         import numpy as np
+
+        width = len(embedding)
+        existing = self.dimension()
+        if existing is None:
+            self._ensure_schema(width)
+        elif existing != width:
+            raise ValueError(
+                f"embedding dimension mismatch: table '{self._table}' stores "
+                f"vector({existing}) but the model emitted {width}. The embedding "
+                "model changed — recreate the table (drop()) or pin EMBED_DIM."
+            )
 
         with self._connect() as conn:
             conn.execute(

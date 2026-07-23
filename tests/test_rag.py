@@ -118,3 +118,42 @@ def test_pgvector_upsert_does_not_duplicate(provider):
     ingest(provider, store, ITEMS)
     ingest(provider, store, ITEMS)
     assert len(store) == 3
+
+
+@pg
+def test_pgvector_adapts_to_the_embedding_width(provider):
+    """No hardcoded 768: the column is created from the width the model actually emits."""
+    from arp.rag.store import PgVectorStore
+
+    store = PgVectorStore(os.environ.get("DATABASE_URL", DSN), table="test_dim_probe")
+    store.drop()
+    store.upsert("a", "text", [0.1] * 16, {})
+    assert store.dimension() == 16
+
+
+@pg
+def test_pgvector_rejects_a_width_mismatch(provider):
+    """A model swap that changes width must fail loudly, not corrupt the index."""
+    from arp.rag.store import PgVectorStore
+
+    store = PgVectorStore(os.environ.get("DATABASE_URL", DSN), table="test_dim_probe")
+    store.drop()
+    store.upsert("a", "text", [0.1] * 16, {})
+    with pytest.raises(ValueError, match="dimension"):
+        store.upsert("b", "text", [0.1] * 32, {})
+
+
+@pg
+def test_pgvector_honours_an_explicit_dimension(provider):
+    from arp.rag.store import PgVectorStore
+
+    store = PgVectorStore(os.environ.get("DATABASE_URL", DSN), table="test_dim_fixed", dim=24)
+    store.drop()
+    store.upsert("a", "text", [0.1] * 24, {})
+    assert store.dimension() == 24
+
+
+def test_fake_provider_width_is_configurable():
+    from arp.llm.provider import FakeProvider as FP
+
+    assert len(FP(dim=128).embed(["x"])[0]) == 128

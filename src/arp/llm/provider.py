@@ -39,8 +39,9 @@ class FakeProvider:
     without pinning brittle literals. Pass `responses` to script exact returns.
     """
 
-    def __init__(self, responses: list[BaseModel] | None = None) -> None:
+    def __init__(self, responses: list[BaseModel] | None = None, dim: int = EMBED_DIM) -> None:
         self._responses = list(responses or [])
+        self._dim = dim
 
     def complete(self, messages: list[Message], schema: type[BaseModel]) -> BaseModel:
         if self._responses:
@@ -54,10 +55,10 @@ class FakeProvider:
         )
 
     def embed(self, texts: list[str]) -> list[list[float]]:
-        return [_hash_embed(text) for text in texts]
+        return [_hash_embed(text, self._dim) for text in texts]
 
 
-def _hash_embed(text: str) -> list[float]:
+def _hash_embed(text: str, dim: int = EMBED_DIM) -> list[float]:
     """Deterministic bag-of-words hashing vectorizer.
 
     Hashing whole strings would be deterministic but semantically blind: two
@@ -65,9 +66,9 @@ def _hash_embed(text: str) -> list[float]:
     dimensions gives crude lexical locality, so retrieval tests exercise real
     ranking behaviour instead of coincidence.
     """
-    vector = [0.0] * EMBED_DIM
+    vector = [0.0] * dim
     for token in tokenize(text):
-        bucket = _seed(token) % EMBED_DIM
+        bucket = _seed(token) % dim
         # Sign hashing keeps unrelated collisions from always reinforcing.
         vector[bucket] += 1.0 if _seed(token + "#sign") % 2 else -1.0
     norm = math.sqrt(sum(v * v for v in vector))
@@ -179,7 +180,7 @@ class LocalProvider:
 def get_provider(settings: Settings | None = None) -> LLMProvider:
     settings = settings or get_settings()
     if settings.llm_provider == "fake":
-        return FakeProvider()
+        return FakeProvider(dim=settings.embed_dim or EMBED_DIM)
     if settings.llm_provider == "local":
         return LocalProvider(settings)
     return VertexProvider(settings)

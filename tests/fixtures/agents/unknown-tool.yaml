@@ -1,5 +1,5 @@
 id: unknown-tool
-model: gemini-1.5-pro
+model: gemini-3.5-flash
 owner: martial.wafo@example.com
 prompt_path: prompts/demo.md
 allowed_tools:

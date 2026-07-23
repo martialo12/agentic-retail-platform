@@ -5,7 +5,7 @@ from arp.registry import AgentSpec, EscalationPolicy
 
 ASSISTANT = AgentSpec(
     id="customer-assistant",
-    model="gemini-1.5-pro",
+    model="gemini-3.5-flash",
     allowed_tools=["lookup_order", "get_product", "search_catalog"],
     escalation=EscalationPolicy(min_confidence=0.6),
     owner="martial.wafo@example.com",
