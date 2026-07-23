@@ -8,11 +8,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from typing import Any, Protocol, runtime_checkable
 
 from pydantic import BaseModel
 
 from arp.config import Settings, get_settings
+from arp.text import tokenize
 
 Message = dict[str, str]
 
@@ -52,11 +54,24 @@ class FakeProvider:
         )
 
     def embed(self, texts: list[str]) -> list[list[float]]:
-        vectors = []
-        for text in texts:
-            seed = _seed(text)
-            vectors.append([((seed >> (i % 32)) % 1000) / 1000.0 for i in range(EMBED_DIM)])
-        return vectors
+        return [_hash_embed(text) for text in texts]
+
+
+def _hash_embed(text: str) -> list[float]:
+    """Deterministic bag-of-words hashing vectorizer.
+
+    Hashing whole strings would be deterministic but semantically blind: two
+    near-identical sentences land in unrelated directions. Hashing *tokens* into
+    dimensions gives crude lexical locality, so retrieval tests exercise real
+    ranking behaviour instead of coincidence.
+    """
+    vector = [0.0] * EMBED_DIM
+    for token in tokenize(text):
+        bucket = _seed(token) % EMBED_DIM
+        # Sign hashing keeps unrelated collisions from always reinforcing.
+        vector[bucket] += 1.0 if _seed(token + "#sign") % 2 else -1.0
+    norm = math.sqrt(sum(v * v for v in vector))
+    return [v / norm for v in vector] if norm else vector
 
 
 def _fabricate(annotation: Any, seed: int) -> Any:

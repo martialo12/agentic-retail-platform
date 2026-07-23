@@ -4,16 +4,9 @@ Pure functions over an injected `Repository`: no globals, no I/O of their own,
 so each is unit-testable in isolation and trivially wrappable by the MCP server.
 """
 
-import unicodedata
-
 from arp.mcp.repository import Repository
 from arp.models import CatalogueItem, Order
-
-
-def _normalize(text: str) -> str:
-    """Fold case and accents so 'CHENE' matches 'chêne' in the French catalogue."""
-    decomposed = unicodedata.normalize("NFKD", text.casefold())
-    return "".join(ch for ch in decomposed if not unicodedata.combining(ch))
+from arp.text import normalize as _normalize
 
 
 def get_product(repo: Repository, product_id: str) -> CatalogueItem:

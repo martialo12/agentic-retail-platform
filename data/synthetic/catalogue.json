@@ -1,0 +1,155 @@
+[
+  {
+    "id": "p001",
+    "title": "Chaise de salle à manger en chêne massif",
+    "specs": {
+      "matiere": "chêne massif",
+      "coloris": "naturel"
+    },
+    "category": "mobilier"
+  },
+  {
+    "id": "p002",
+    "title": "Table basse rectangulaire en verre trempé",
+    "specs": {
+      "matiere": "verre trempé"
+    },
+    "category": "mobilier"
+  },
+  {
+    "id": "p003",
+    "title": "Étagère murale modulable en pin",
+    "specs": {},
+    "category": null
+  },
+  {
+    "id": "p004",
+    "title": "Fauteuil pivotant en velours",
+    "specs": {
+      "matiere": "velours",
+      "coloris": "bleu nuit"
+    },
+    "category": "mobilier"
+  },
+  {
+    "id": "p005",
+    "title": "Buffet deux portes en noyer",
+    "specs": {
+      "matiere": "noyer"
+    },
+    "category": "mobilier"
+  },
+  {
+    "id": "p006",
+    "title": "Lampe de bureau articulée",
+    "specs": {},
+    "category": null
+  },
+  {
+    "id": "p007",
+    "title": "Suspension design en laiton brossé",
+    "specs": {
+      "matiere": "laiton brossé"
+    },
+    "category": "luminaire"
+  },
+  {
+    "id": "p008",
+    "title": "Applique murale aluminium",
+    "specs": {
+      "matiere": "aluminium",
+      "indice_protection": "IP44"
+    },
+    "category": "luminaire"
+  },
+  {
+    "id": "p009",
+    "title": "Lampadaire trépied en bois clair",
+    "specs": {},
+    "category": null
+  },
+  {
+    "id": "p010",
+    "title": "Coussin décoratif en lin lavé",
+    "specs": {
+      "matiere": "lin lavé",
+      "dimensions": "45x45 cm"
+    },
+    "category": "textile"
+  },
+  {
+    "id": "p011",
+    "title": "Plaid maille torsadée en laine mérinos",
+    "specs": {
+      "matiere": "laine mérinos"
+    },
+    "category": "textile"
+  },
+  {
+    "id": "p012",
+    "title": "Rideau occultant en polyester recyclé",
+    "specs": {},
+    "category": null
+  },
+  {
+    "id": "p013",
+    "title": "Tapis tissé main en jute",
+    "specs": {
+      "matiere": "jute"
+    },
+    "category": "textile"
+  },
+  {
+    "id": "p014",
+    "title": "Poêle antiadhésive",
+    "specs": {
+      "diametre": "28 cm",
+      "compatible": "induction"
+    },
+    "category": "cuisine"
+  },
+  {
+    "id": "p015",
+    "title": "Set de couteaux en acier inoxydable",
+    "specs": {},
+    "category": null
+  },
+  {
+    "id": "p016",
+    "title": "Planche à découper en bambou",
+    "specs": {
+      "matiere": "bambou"
+    },
+    "category": "cuisine"
+  },
+  {
+    "id": "p017",
+    "title": "Casserole à fond épais en inox 18/10",
+    "specs": {
+      "matiere": "inox 18/10"
+    },
+    "category": "cuisine"
+  },
+  {
+    "id": "p018",
+    "title": "Boîte de rangement empilable en polypropylène",
+    "specs": {},
+    "category": null
+  },
+  {
+    "id": "p019",
+    "title": "Panier tressé en rotin naturel",
+    "specs": {
+      "matiere": "rotin naturel"
+    },
+    "category": "rangement"
+  },
+  {
+    "id": "p020",
+    "title": "Casier à chaussures en métal époxy",
+    "specs": {
+      "matiere": "métal époxy"
+    },
+    "category": "rangement"
+  }
+]
