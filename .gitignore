@@ -53,3 +53,7 @@ logs/
 crash.log
 *.tfvars
 !*.tfvars.example
+
+# Front-end build artefacts
+front/node_modules/
+front/dist/

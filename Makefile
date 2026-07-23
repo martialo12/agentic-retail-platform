@@ -1,4 +1,5 @@
-.PHONY: setup setup-agents lint test up down ingest eval ask enrich serve serve-api serve-docker docker tf-validate k8s-validate iac
+.PHONY: setup setup-agents lint test up down ingest eval ask enrich serve serve-api serve-docker docker
+.PHONY: front-install front-dev front-build front-lint front-typecheck front tf-validate k8s-validate iac
 
 # OpenTofu is the default; export TF=terraform to use HashiCorp Terraform instead.
 TF ?= tofu
@@ -23,6 +24,12 @@ serve-api:        ; $(RUN) python -m arp.api
 # make ask Q="Où en est ma commande o002 ?"   /   make enrich ID=p003
 ask:              ; $(RUN) python -m arp.cli ask "$(Q)"
 enrich:           ; $(RUN) python -m arp.cli enrich "$(ID)"
+front-install:    ; cd front && npm install
+front-dev:        ; cd front && npm run dev
+front-build:      ; cd front && npm run build
+front-lint:       ; cd front && npm run lint
+front-typecheck:  ; cd front && npm run type-check
+front: front-lint front-typecheck front-build
 docker:           ; docker build -t arp:local .
 # Same entrypoint, but through the image that ships to Cloud Run / GKE.
 serve-docker: docker
