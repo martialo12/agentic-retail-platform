@@ -4,7 +4,7 @@
 
 **Created**: 2026-07-23
 
-**Status**: Draft
+**Status**: Implemented — phases 0–5 delivered (socle, both agents, GCP IaC, web console)
 
 **Input**: Design doc `docs/design/2026-07-23-agentic-retail-platform-design.md` — build a reusable agentic socle (registry, MCP tools, identity/policy, LangGraph orchestration, RAG, LLMOps, GCP-ready IaC) proven by two agents plugged into it, runnable locally.
 
