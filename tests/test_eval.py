@@ -1,7 +1,7 @@
 import pytest
-from arp.llmops.eval import EvalReport, GoldenItem, load_golden, run_eval, to_markdown
 
 from arp.agents.product_enricher.schema import EnrichedProduct
+from arp.llmops.eval import EvalReport, GoldenItem, load_golden, run_eval, to_markdown
 
 GOLDEN = [
     GoldenItem(
