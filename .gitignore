@@ -31,6 +31,10 @@ build/
 # OS
 .DS_Store
 
+# iCloud sync-conflict copies ("module 2.py" beside "module.py"). Stale by
+# definition; pytest is told to skip them too (see pyproject addopts).
+* [0-9].*
+
 # Local data / vector store dumps
 data/local/
 volumes/
