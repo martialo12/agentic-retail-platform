@@ -124,6 +124,38 @@ def test_sink_is_optional_and_leaves_the_jsonl_unchanged(runs_dir):
     assert [e["kind"] for e in _records(runs_dir)[0]["events"]] == ["output"]
 
 
+def test_run_is_indexed_in_the_store(runs_dir):
+    from arp.llmops.run_store import InMemoryRunStore
+
+    store = InMemoryRunStore()
+    with trace_run("a", runs_dir=runs_dir, store=store) as tracer:
+        tracer.event(EventKind.OUTPUT, valid=True)
+    (summary,) = store.list()
+    assert summary.run_id == tracer.run_id
+    assert summary.event_count == 1
+
+
+def test_an_escalated_run_is_indexed_as_escalated(runs_dir):
+    from arp.llmops.run_store import InMemoryRunStore
+
+    store = InMemoryRunStore()
+    with trace_run("a", runs_dir=runs_dir, store=store) as tracer:
+        tracer.event(EventKind.ESCALATION, reason="remboursement")
+    assert store.list()[0].escalated is True
+
+
+def test_an_unreachable_store_never_loses_the_audit_record(runs_dir):
+    """FR-016: the JSONL is the audit artefact; the index is best-effort."""
+
+    class Broken:
+        def save(self, record):
+            raise RuntimeError("database down")
+
+    with trace_run("a", runs_dir=runs_dir, store=Broken()) as tracer:
+        tracer.event(EventKind.OUTPUT, valid=True)
+    assert _records(runs_dir)[0]["outcome"] == "completed"
+
+
 def test_a_failing_sink_never_breaks_the_run(runs_dir):
     """A closed browser tab is not the agent's problem; the audit record must survive."""
 

@@ -14,7 +14,12 @@ from contextlib import contextmanager
 from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    # Type-only: the tracer must not depend on the index at runtime, since the
+    # index is optional and the tracer is not.
+    from arp.llmops.run_store import RunStore
 
 DEFAULT_RUNS_DIR = Path("logs/runs")
 
@@ -85,6 +90,7 @@ def trace_run(
     runs_dir: Path | None = None,
     provider: str | None = None,
     sink: Callable[[dict[str, Any]], None] | None = None,
+    store: RunStore | None = None,
 ) -> Iterator[RunTracer]:
     runs_dir = Path(runs_dir or DEFAULT_RUNS_DIR)
     run_id = uuid.uuid4().hex[:12]
@@ -101,5 +107,12 @@ def trace_run(
         runs_dir.mkdir(parents=True, exist_ok=True)
         stamp = tracer.started_at.strftime("%Y%m%dT%H%M%S%f")
         path = runs_dir / f"{stamp}-{agent_id}-{run_id}.jsonl"
-        payload = json.dumps(tracer.record(outcome, error), ensure_ascii=False)
-        path.write_text(payload + "\n", encoding="utf-8")
+        record = tracer.record(outcome, error)
+        path.write_text(json.dumps(record, ensure_ascii=False) + "\n", encoding="utf-8")
+        if store is not None:
+            try:
+                store.save(record)
+            except Exception:  # noqa: BLE001
+                # The index is a convenience. The audit record is already on disk
+                # above, and no database outage may be allowed to cost it.
+                pass
