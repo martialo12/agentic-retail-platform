@@ -3,6 +3,16 @@ output "mcp_service_url" {
   value       = google_cloud_run_v2_service.mcp.uri
 }
 
+output "api_service_url" {
+  description = "HTTPS endpoint of the console API. Internal ingress; unauthenticated by design."
+  value       = google_cloud_run_v2_service.api.uri
+}
+
+output "console_service_url" {
+  description = "HTTPS endpoint of the console front."
+  value       = google_cloud_run_v2_service.console.uri
+}
+
 output "service_account_email" {
   description = "Runtime identity of the Cloud Run service."
   value       = google_service_account.app.email
