@@ -1,6 +1,13 @@
 # Claude Code local config — intentionally NOT committed
 .claude/
 
+# Specs & docs — kept local, intentionally NOT committed
+.specify/
+specs/
+docs/
+CLAUDE.md
+README.md
+
 # Env & secrets
 .env
 .env.*
