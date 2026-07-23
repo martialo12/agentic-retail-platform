@@ -1,8 +1,8 @@
 import pytest
-from arp.agents.product_enricher.schema import EnrichedProduct
 from pydantic import ValidationError
 
 from arp.agents import AGENTS_DIR
+from arp.agents.product_enricher.schema import EnrichedProduct
 from arp.registry import load_agent
 
 VALID = {
