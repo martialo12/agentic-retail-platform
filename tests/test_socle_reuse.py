@@ -7,9 +7,9 @@ platform change. These tests are what make that claim falsifiable.
 import inspect
 
 import pytest
-from arp.agents.customer_assistant.graph import build_assistant
 
 from arp.agents import AGENTS_DIR
+from arp.agents.customer_assistant.graph import build_assistant
 from arp.agents.product_enricher.graph import build_enricher
 from arp.orchestration import build_graph
 from arp.policy import PolicyError, authorize, is_allowed
