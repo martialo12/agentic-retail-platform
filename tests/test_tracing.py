@@ -99,3 +99,37 @@ def test_record_is_one_json_line(runs_dir):
 def test_tracer_type_is_exposed(runs_dir):
     with trace_run("a", runs_dir=runs_dir) as tracer:
         assert isinstance(tracer, RunTracer)
+
+
+def test_sink_receives_each_event_as_it_happens(runs_dir):
+    """SC-008: the console needs events during the run, not a batch at the end."""
+    seen = []
+    with trace_run("a", runs_dir=runs_dir, sink=seen.append) as tracer:
+        tracer.event(EventKind.RETRIEVAL, hits=3)
+        assert len(seen) == 1, "the event must be delivered before the run ends"
+        tracer.event(EventKind.OUTPUT, valid=True)
+    assert [e["kind"] for e in seen] == ["retrieval", "output"]
+
+
+def test_sink_sees_the_same_payload_as_the_record(runs_dir):
+    seen = []
+    with trace_run("a", runs_dir=runs_dir, sink=seen.append) as tracer:
+        tracer.event(EventKind.RETRIEVAL, query="chaise", hits=3)
+    assert seen == _records(runs_dir)[0]["events"]
+
+
+def test_sink_is_optional_and_leaves_the_jsonl_unchanged(runs_dir):
+    with trace_run("a", runs_dir=runs_dir) as tracer:
+        tracer.event(EventKind.OUTPUT, valid=True)
+    assert [e["kind"] for e in _records(runs_dir)[0]["events"]] == ["output"]
+
+
+def test_a_failing_sink_never_breaks_the_run(runs_dir):
+    """A closed browser tab is not the agent's problem; the audit record must survive."""
+
+    def broken(_event):
+        raise RuntimeError("client gone")
+
+    with trace_run("a", runs_dir=runs_dir, sink=broken) as tracer:
+        tracer.event(EventKind.OUTPUT, valid=True)
+    assert _records(runs_dir)[0]["outcome"] == "completed"

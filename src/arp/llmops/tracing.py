@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 import uuid
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from enum import StrEnum
@@ -28,23 +28,40 @@ class EventKind(StrEnum):
 
 
 class RunTracer:
-    """Accumulates events in memory; the record is written once, on exit."""
+    """Accumulates events in memory; the record is written once, on exit.
 
-    def __init__(self, agent_id: str, run_id: str, provider: str | None = None) -> None:
+    An optional `sink` is called with each event as it happens, which is what lets
+    a console watch a run unfold instead of reporting on it afterwards.
+    """
+
+    def __init__(
+        self,
+        agent_id: str,
+        run_id: str,
+        provider: str | None = None,
+        sink: Callable[[dict[str, Any]], None] | None = None,
+    ) -> None:
         self.agent_id = agent_id
         self.run_id = run_id
         self.provider = provider
         self.started_at = datetime.now(UTC)
         self._events: list[dict[str, Any]] = []
+        self._sink = sink
 
     def event(self, kind: EventKind | str, **fields: Any) -> None:
-        self._events.append(
-            {
-                "kind": EventKind(kind).value,
-                "at": datetime.now(UTC).isoformat(),
-                **fields,
-            }
-        )
+        payload = {
+            "kind": EventKind(kind).value,
+            "at": datetime.now(UTC).isoformat(),
+            **fields,
+        }
+        self._events.append(payload)
+        if self._sink is not None:
+            try:
+                self._sink(payload)
+            except Exception:  # noqa: BLE001
+                # A consumer that went away is not the agent's problem. The JSONL
+                # record is the audit artefact and must survive regardless.
+                pass
 
     @property
     def escalated(self) -> bool:
@@ -67,10 +84,11 @@ def trace_run(
     agent_id: str,
     runs_dir: Path | None = None,
     provider: str | None = None,
+    sink: Callable[[dict[str, Any]], None] | None = None,
 ) -> Iterator[RunTracer]:
     runs_dir = Path(runs_dir or DEFAULT_RUNS_DIR)
     run_id = uuid.uuid4().hex[:12]
-    tracer = RunTracer(agent_id, run_id, provider)
+    tracer = RunTracer(agent_id, run_id, provider, sink)
     outcome, error = "completed", None
     try:
         yield tracer
