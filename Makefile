@@ -1,4 +1,4 @@
-.PHONY: setup setup-agents lint test up down ingest eval ask enrich serve serve-docker docker tf-validate k8s-validate iac
+.PHONY: setup setup-agents lint test up down ingest eval ask enrich serve serve-api serve-docker docker tf-validate k8s-validate iac
 
 # OpenTofu is the default; export TF=terraform to use HashiCorp Terraform instead.
 TF ?= tofu
@@ -19,6 +19,7 @@ down:             ; docker compose down
 ingest:           ; $(RUN) python -m arp.rag.ingest
 eval:             ; $(RUN) python -m arp.llmops.eval
 serve:            ; $(RUN) python -m arp.mcp
+serve-api:        ; $(RUN) python -m arp.api
 # make ask Q="Où en est ma commande o002 ?"   /   make enrich ID=p003
 ask:              ; $(RUN) python -m arp.cli ask "$(Q)"
 enrich:           ; $(RUN) python -m arp.cli enrich "$(ID)"
