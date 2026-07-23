@@ -38,6 +38,10 @@ select = ["E", "F", "I", "UP", "B"]
 asyncio_mode = "auto"
 testpaths = ["tests"]
 pythonpath = ["src"]
+# iCloud resolves sync conflicts by dropping a "<name> 2.py" copy next to the
+# original. Those stale copies are collectable test modules, so the suite
+# silently reports a inflated count against outdated code. Never collect them.
+addopts = ["--ignore-glob=* [0-9].py"]
 
 [build-system]
 requires = ["hatchling"]

@@ -1,9 +1,9 @@
 import json
 
 import pytest
-from arp.agents.customer_assistant.graph import build_assistant
 
 from arp.agents import AGENTS_DIR
+from arp.agents.customer_assistant.graph import build_assistant
 from arp.agents.customer_assistant.schema import AssistantReply
 from arp.llm.provider import FakeProvider
 from arp.llmops.tracing import trace_run
