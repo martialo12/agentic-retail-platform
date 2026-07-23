@@ -1,0 +1,29 @@
+# Claude Code local config — intentionally NOT committed
+.claude/
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# OS
+.DS_Store
+
+# Local data / vector store dumps
+data/local/
+volumes/
