@@ -9,6 +9,18 @@ const router = createRouter({
       component: () => import('@/views/AssistantView.vue'),
       meta: { label: 'assistant' },
     },
+    {
+      path: '/enrichissement',
+      name: 'enrichissement',
+      component: () => import('@/views/EnrichmentView.vue'),
+      meta: { label: 'enrichissement' },
+    },
+    {
+      path: '/observabilite',
+      name: 'observabilite',
+      component: () => import('@/views/ObservabilityView.vue'),
+      meta: { label: 'observabilité' },
+    },
   ],
 })
 

@@ -14,6 +14,9 @@ export default [
   {
     rules: {
       'vue/multi-word-component-names': 'off',
+      // TypeScript and vue-tsc already resolve identifiers, including browser
+      // globals; ESLint's no-undef only double-flags them without a globals list.
+      'no-undef': 'off',
     },
   },
 ]
