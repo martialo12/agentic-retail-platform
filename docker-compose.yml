@@ -12,5 +12,29 @@ services:
   redis:
     image: redis:7-alpine
     ports: ["6379:6379"]
+
+  # Same image as the MCP server ships in; only the command differs. That is the
+  # point — one build, two entrypoints, no divergence between them.
+  api:
+    build: .
+    command: ["python", "-m", "arp.api"]
+    environment:
+      # `fake` keeps the stack runnable with zero credentials. Swap to gemini or
+      # vertex (and add the matching keys) to drive real models.
+      LLM_PROVIDER: fake
+      DATABASE_URL: postgresql://arp:arp@db:5432/arp
+      REDIS_URL: redis://redis:6379/0
+      DATA_DIR: /app/data/synthetic
+      API_PORT: "8000"
+    ports: ["8000:8000"]
+    depends_on: [db, redis]
+
+  # Static bundle behind nginx. It talks to the API from the browser, so it
+  # needs neither the database nor Redis — only the API to be up.
+  front:
+    build: ./front
+    ports: ["5173:8080"]
+    depends_on: [api]
+
 volumes:
   pgdata:

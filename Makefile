@@ -1,5 +1,5 @@
 .PHONY: setup setup-agents lint test up down ingest eval ask enrich serve serve-api serve-docker docker
-.PHONY: front-install front-dev front-build front-lint front-typecheck front tf-validate k8s-validate iac
+.PHONY: front-install front-dev front-build front-lint front-typecheck front front-docker tf-validate k8s-validate iac
 
 # OpenTofu is the default; export TF=terraform to use HashiCorp Terraform instead.
 TF ?= tofu
@@ -31,6 +31,7 @@ front-lint:       ; cd front && npm run lint
 front-typecheck:  ; cd front && npm run type-check
 front: front-lint front-typecheck front-build
 docker:           ; docker build -t arp:local .
+front-docker:     ; docker build -t arp-console:local front
 # Same entrypoint, but through the image that ships to Cloud Run / GKE.
 serve-docker: docker
 	docker run --rm -p $(PORT):8080 --env-file .env -e DATA_DIR=/app/data/synthetic arp:local
