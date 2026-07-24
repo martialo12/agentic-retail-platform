@@ -1,3 +1,6 @@
+// Display face for the human voice (hero, view titles); machine testimony stays
+// mono. Variable so weight and optical size stay crisp from caption to hero.
+import '@fontsource-variable/bricolage-grotesque'
 import '@fontsource/ibm-plex-sans/400.css'
 import '@fontsource/ibm-plex-sans/500.css'
 import '@fontsource/ibm-plex-sans/600.css'

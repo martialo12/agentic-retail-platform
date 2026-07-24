@@ -4,11 +4,12 @@ import 'vuetify/styles'
 import { createVuetify } from 'vuetify'
 
 /**
- * A control-room palette, not a dashboard one.
+ * "Maison" — a warm, premium palette for governed retail AI.
  *
- * `stamp` is reserved for governance outcomes — a refused tool call, an
+ * `stamp` (amber) is reserved for governance outcomes — a refused tool call, an
  * escalation. Nothing else in the interface may use it. The scarcity is what
- * gives a refusal its weight when it appears.
+ * gives a refusal its weight when it appears. `ok` (green) carries both "the
+ * system is operating within its rules" and the brand's quiet thread.
  */
 export default createVuetify({
   theme: {
@@ -17,14 +18,14 @@ export default createVuetify({
       console: {
         dark: false,
         colors: {
-          background: '#F6F7F8',
+          background: '#FBFAF7',
           surface: '#FFFFFF',
-          primary: '#14181F',
-          secondary: '#6B7480',
-          stamp: '#7A1F4B',
-          ok: '#1F6F5C',
-          error: '#8A2B1F',
-          warning: '#7A1F4B',
+          primary: '#1A1712',
+          secondary: '#8C8578',
+          stamp: '#B4530A',
+          ok: '#16624B',
+          error: '#9B2C1B',
+          warning: '#B4530A',
         },
       },
     },

@@ -254,10 +254,11 @@ function enrich(sheet: Sheet) {
 }
 .title {
   margin: 0 0 12px;
+  font-family: var(--display);
   font-size: var(--step3);
-  font-weight: 500;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
   max-width: 26ch;
 }
 .lead {
@@ -457,7 +458,7 @@ function enrich(sheet: Sheet) {
 }
 .gauge.below {
   background: var(--stamp-wash);
-  border-color: rgba(122, 31, 75, 0.35);
+  border-color: rgba(180, 83, 10, 0.35);
 }
 .gauge-head {
   display: flex;

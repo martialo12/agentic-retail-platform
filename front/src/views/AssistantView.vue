@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from 'vue'
 
+import HumanHandoff from '@/components/socle/HumanHandoff.vue'
 import SoclePanel from '@/components/socle/SoclePanel.vue'
 import { useRunStore } from '@/stores/runStore'
 
@@ -40,11 +41,12 @@ const tools = computed(() => store.toolsUsed)
       <!-- Conversation -->
       <section class="convo">
         <header class="intro">
-          <p class="eyebrow mb-2">
+          <p class="eyebrow mb-3">
             assistant client
           </p>
-          <h1 class="title">
-            Posez une question. Regardez le socle décider.
+          <h1 class="title display">
+            Posez une question.<br>
+            Regardez le socle décider.
           </h1>
           <p class="lead">
             Chaque exécution est gouvernée en direct — outils autorisés, appels
@@ -77,22 +79,17 @@ const tools = computed(() => store.toolsUsed)
             </p>
           </div>
 
-          <!-- Escalation is an outcome, not a failure (FR-017). -->
+          <!-- Escalation is an outcome, not a failure (FR-017). A human takes
+               over, reachable by phone or WhatsApp. -->
           <div
             v-if="store.escalation"
             class="turn"
           >
             <span class="eyebrow turn-label">socle</span>
-            <div class="card card--stamp">
-              <span class="stamp mb-3">transféré à un humain</span>
-              <p class="card-body">
-                La demande est sortie du périmètre de l'agent. Aucun modèle n'a
-                produit de réponse : le socle a passé la main à un conseiller.
-              </p>
-              <p class="reason mono">
-                {{ store.escalation.reason }}
-              </p>
-            </div>
+            <HumanHandoff
+              :reason="store.escalation.reason"
+              :question="asked"
+            />
           </div>
 
           <div
@@ -181,15 +178,15 @@ const tools = computed(() => store.toolsUsed)
 
 <style scoped>
 .view {
-  max-width: 1180px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 40px 32px 48px;
+  padding: 56px 32px 64px;
 }
 
 .split {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 400px;
-  gap: 40px;
+  grid-template-columns: minmax(0, 1fr) 410px;
+  gap: 48px;
   align-items: start;
 }
 
@@ -198,18 +195,15 @@ const tools = computed(() => store.toolsUsed)
 }
 
 .title {
-  margin: 0 0 12px;
-  font-size: var(--step3);
-  font-weight: 500;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
-  max-width: 20ch;
+  margin: 0 0 16px;
+  font-size: var(--step4);
+  color: var(--ink);
 }
 .lead {
   margin: 0;
-  max-width: 52ch;
+  max-width: 50ch;
   color: var(--ink-2);
-  font-size: var(--step1);
+  font-size: var(--step2);
   line-height: 1.55;
 }
 
@@ -291,16 +285,6 @@ const tools = computed(() => store.toolsUsed)
   font-size: var(--step-1);
   letter-spacing: 0.06em;
   color: var(--muted);
-}
-
-.card--stamp {
-  border-color: rgba(122, 31, 75, 0.4);
-  background: var(--stamp-wash);
-}
-.reason {
-  margin: 12px 0 0;
-  font-size: var(--step0);
-  color: var(--stamp-ink);
 }
 
 .card--error {

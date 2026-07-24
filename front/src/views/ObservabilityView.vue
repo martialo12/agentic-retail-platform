@@ -102,9 +102,9 @@ onMounted(() => {
         Chaque exécution, conservée et relisible.
       </h1>
       <p class="lead">
-        Le registre indexe les runs pour la vue ; l'artefact d'audit reste le
-        JSONL sur disque. Ouvrez un run pour rejouer sa bande, événement par
-        événement.
+        Le registre indexe les runs pour la vue ; l'artefact d'audit part sur la
+        sortie standard, collectée par la plateforme. Ouvrez un run pour rejouer
+        sa bande, événement par événement.
       </p>
     </header>
 
@@ -251,10 +251,11 @@ onMounted(() => {
 }
 .title {
   margin: 0 0 12px;
+  font-family: var(--display);
   font-size: var(--step3);
-  font-weight: 500;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 .lead {
   margin: 0;
@@ -382,7 +383,7 @@ onMounted(() => {
 }
 .badge--stamp {
   color: var(--stamp);
-  border-color: rgba(122, 31, 75, 0.4);
+  border-color: rgba(180, 83, 10, 0.4);
   background: var(--stamp-wash);
 }
 
@@ -392,45 +393,62 @@ onMounted(() => {
   color: var(--muted);
 }
 
-/* Drawer */
+/* Drawer — opens below the sticky topbar so its close control never collides
+   with the header, and sits above everything else. */
 .scrim {
   position: fixed;
-  inset: 0;
-  background: rgba(20, 24, 31, 0.32);
+  inset: var(--topbar-h) 0 0 0;
+  background: rgba(20, 18, 14, 0.34);
   display: flex;
   justify-content: flex-end;
-  z-index: 30;
+  z-index: 40;
 }
 .drawer {
   width: min(460px, 92vw);
   height: 100%;
-  background: var(--paper);
+  background: var(--canvas);
   border-left: 1px solid var(--rule-strong);
+  box-shadow: -16px 0 40px -24px rgba(26, 23, 18, 0.4);
   display: flex;
   flex-direction: column;
-  padding: 20px 22px 22px;
+  padding: 18px 22px 22px;
 }
 .drawer-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  gap: 12px;
   padding-bottom: 14px;
 }
 .drawer-id {
   font-size: var(--step0);
   color: var(--ink);
 }
+/* A real target, not a bare glyph: 34px hit area, rounded, with a hover well. */
 .close {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin: -4px -6px 0 0;
   font-size: var(--step1);
   color: var(--muted);
   background: none;
-  border: none;
+  border: 1px solid transparent;
+  border-radius: 50%;
   cursor: pointer;
   line-height: 1;
-  padding: 2px 6px;
+  transition:
+    color 120ms ease,
+    background 120ms ease,
+    border-color 120ms ease;
 }
 .close:hover {
   color: var(--ink);
+  background: var(--surface-2);
+  border-color: var(--rule-strong);
 }
 .drawer-meta {
   display: flex;

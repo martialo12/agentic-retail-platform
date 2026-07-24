@@ -27,7 +27,10 @@ const links = router.getRoutes().filter((route) => route.meta?.label)
         </RouterLink>
       </nav>
 
-      <span class="eyebrow tag">gouvernance en direct</span>
+      <span class="tag eyebrow">
+        <span class="live-dot" />
+        gouvernance en direct
+      </span>
     </header>
 
     <v-main>
@@ -41,9 +44,13 @@ const links = router.getRoutes().filter((route) => route.meta?.label)
   display: flex;
   align-items: center;
   gap: 36px;
-  height: 52px;
-  padding: 0 28px;
-  background: var(--surface);
+  height: var(--topbar-h);
+  padding: 0 32px;
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: saturate(1.2) blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 .brand {
   display: flex;
@@ -52,10 +59,10 @@ const links = router.getRoutes().filter((route) => route.meta?.label)
   text-decoration: none;
 }
 .mark {
-  font-weight: 600;
-  font-size: 0.95rem;
+  font-weight: 700;
+  font-size: 1rem;
   color: var(--ink);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
 }
 .brand-sub {
   color: var(--muted);
@@ -82,7 +89,27 @@ const links = router.getRoutes().filter((route) => route.meta?.label)
 
 .tag {
   margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   color: var(--muted);
+}
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ok);
+  box-shadow: 0 0 0 3px var(--ok-wash);
+  animation: live 2s ease-in-out infinite;
+}
+@keyframes live {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 @media (max-width: 600px) {
