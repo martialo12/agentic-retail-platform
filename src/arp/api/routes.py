@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, field_validator
 
+from arp.api.middleware import RequestContextMiddleware
 from arp.api.streaming import stream_run
 from arp.api.wiring import Deps, build_assistant_graph, build_deps, build_enricher_graph
 
@@ -36,6 +37,10 @@ class EnrichRequest(BaseModel):
 
 def create_app(deps: Deps | None = None) -> FastAPI:
     app = FastAPI(title="Agentic Retail Platform", version="0.1.0")
+
+    # Stamps a request id and binds it to the logging context for the whole
+    # request, so every downstream line — routes, policy, tracer — carries it.
+    app.add_middleware(RequestContextMiddleware)
 
     # The front runs on Vite's port in development, so it is a different origin.
     app.add_middleware(

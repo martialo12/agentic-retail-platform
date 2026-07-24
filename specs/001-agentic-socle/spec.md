@@ -16,13 +16,13 @@ A catalogue manager submits a raw, incomplete product sheet (title + partial spe
 
 **Why this priority**: It is the flagship retail use-case and the clearest proof that the socle turns a vague brief into structured, auditable output. It alone is a viable MVP.
 
-**Independent Test**: Feed one incomplete sheet through the enricher against the synthetic catalogue; assert a schema-valid `EnrichedProduct` is produced (high confidence) or an escalation is raised (low confidence), and that a JSONL trace was written.
+**Independent Test**: Feed one incomplete sheet through the enricher against the synthetic catalogue; assert a schema-valid `EnrichedProduct` is produced (high confidence) or an escalation is raised (low confidence), and that a structured audit record was emitted (to stdout and the run store).
 
 **Acceptance Scenarios**:
 
 1. **Given** an incomplete sheet with a clear category signal, **When** the enricher runs, **Then** it emits a schema-valid `EnrichedProduct` with `confidence >= threshold` and calls `write_enrichment` (policy-permitted).
 2. **Given** a sheet with ambiguous signals, **When** the enricher runs, **Then** it routes to escalation and does NOT call `write_enrichment`.
-3. **Given** any run, **When** it completes, **Then** exactly one timestamped JSONL record with the run's events exists under `logs/runs/`.
+3. **Given** any run, **When** it completes, **Then** exactly one structured audit record with the run's events is emitted to stdout and indexed in the run store (and additionally written as a JSONL file when a writable `RUN_TRACE_DIR` is configured).
 
 ---
 
@@ -78,7 +78,7 @@ view with its full event timeline.
 
 - LLM returns output that fails schema validation → bounded retry (max N), then escalate; never emit unvalidated output.
 - The UI client disconnects mid-run → the run is cancelled; no orphaned work continues server-side.
-- The run store is unreachable → the run still completes and its JSONL audit record is still written; only the observability view degrades.
+- The run store is unreachable → the run still completes and its audit record is still emitted to stdout; only the observability view degrades.
 - Requested provider (Vertex) is unconfigured at runtime → fall back to the configured local provider; surface which provider served the run in the trace.
 - Retrieval returns zero hits → enricher drafts from the sheet alone and lowers confidence (more likely to escalate).
 - A tool call targets a tool not in the agent's `allowed_tools` → refuse and trace; the call never executes.
@@ -96,14 +96,14 @@ view with its full event timeline.
 - **FR-006**: System MUST retrieve context from a pgvector store using an interface that is AlloyDB-compatible in production.
 - **FR-007**: System MUST route all model calls through one provider-agnostic `LLMProvider` interface; default target Vertex AI Gemini, with a configurable local fallback, and a deterministic fake for tests.
 - **FR-008**: System MUST validate every LLM result against a Pydantic schema; on parse failure it MUST retry up to a bounded limit, then escalate.
-- **FR-009**: System MUST write exactly one timestamped JSONL record per run, capturing retrieval, tool-call, llm-call, escalation, and output events.
+- **FR-009**: System MUST emit exactly one timestamped, structured audit record per run to stdout, capturing retrieval, tool-call, llm-call, escalation, and output events. In a container this stdout stream is the durable audit store (collected by the platform's log system); no run may depend on a writable local filesystem. A JSONL file per run MAY additionally be written when a writable directory is configured (`RUN_TRACE_DIR`).
 - **FR-010**: System MUST provide `product-enricher` producing a validated `EnrichedProduct` (category, materials, use_cases, seo_description, confidence).
 - **FR-011**: System MUST provide `customer-assistant` producing a validated `AssistantReply`, granted `lookup_order,get_product,search_catalog` but NOT `write_enrichment`.
 - **FR-012**: System MUST run an evaluation harness over a synthetic golden set, reporting field-coverage, exact-match vs reference, and escalation-rate.
 - **FR-013**: System MUST use only synthetic catalogue data; no real customer data is ingested or stored.
 - **FR-014**: System MUST provide GCP-ready IaC (Dockerfile, Terraform for Cloud Run/AlloyDB/GCS/Memorystore, K8s manifests) that passes `validate` without being deployed.
 - **FR-015**: System MUST expose both agents over an HTTP API that streams each run's events (retrieval, tool-call, llm-call, escalation, output) as they occur, rather than only on completion.
-- **FR-016**: System MUST persist every run to a queryable, AlloyDB-compatible store, without replacing the JSONL record — the file remains the audit artefact, the store is a read index.
+- **FR-016**: System MUST persist every run to a queryable, AlloyDB-compatible store, without replacing the stdout audit record — the emitted record remains the audit artefact, the store is a read index.
 - **FR-017**: System MUST provide a web interface covering both agents and run observability, in which an escalation is presented as a first-class outcome and never as an error.
 - **FR-018**: The HTTP API is unauthenticated in this POC. Its IaC MUST therefore declare it non-public by construction — internal ingress and an empty invoker set, as the MCP service already does — so that a deployment cannot accidentally expose it. Authentication is a prerequisite for granting any invoker.
 
@@ -113,7 +113,7 @@ view with its full event timeline.
 - **Tool**: A business capability exposed over MCP; referenced by name in `allowed_tools`.
 - **EnrichedProduct**: Structured enricher output — category, materials, use_cases, seo_description, confidence.
 - **AssistantReply**: Structured assistant output — answer, tool_calls_used, escalate flag.
-- **RunTrace**: One JSONL record per run — agent id, timestamp, ordered events, serving provider, outcome.
+- **RunTrace**: One structured audit record per run — agent id, timestamp, ordered events, serving provider, outcome. Emitted to stdout and indexed in the run store; optionally mirrored to a JSONL file.
 - **CatalogueItem**: A synthetic product — id, title, partial specs, category; corpus for RAG and golden set.
 
 ## Success Criteria *(mandatory)*

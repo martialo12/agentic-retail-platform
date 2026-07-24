@@ -10,6 +10,8 @@ import json
 from collections.abc import AsyncIterator, Callable
 from typing import Any
 
+from loguru import logger
+
 from arp.api.wiring import Deps
 from arp.llmops.tracing import trace_run
 
@@ -36,6 +38,7 @@ async def stream_run(
         loop.call_soon_threadsafe(queue.put_nowait, event)
 
     async def run() -> None:
+        logger.info("agent run started: {}", agent_id)
         try:
             with trace_run(
                 agent_id,
@@ -45,6 +48,7 @@ async def stream_run(
             ) as tracer:
                 await build_graph(deps, tracer).ainvoke(initial_state)
         except Exception as exc:  # noqa: BLE001 - surfaced to the client as a frame
+            logger.exception("agent run failed: {}", agent_id)
             await queue.put({"kind": "error", "message": f"{type(exc).__name__}: {exc}"})
         finally:
             await queue.put(None)

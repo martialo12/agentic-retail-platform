@@ -7,6 +7,7 @@ from typing import Literal
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 Provider = Literal["vertex", "gemini", "local", "fake"]
+LogFormat = Literal["console", "json"]
 
 
 class Settings(BaseSettings):
@@ -48,6 +49,19 @@ class Settings(BaseSettings):
     # a packaged install (the container) puts `arp` outside the repo tree and
     # therefore sets DATA_DIR explicitly.
     data_dir: Path = Path(__file__).resolve().parents[2] / "data" / "synthetic"
+
+    # Logging goes to stdout only — the platform (Cloud Run / GKE) collects it.
+    # `console` is a human-readable dev format; the container sets `json` so
+    # Cloud Logging ingests every field. `diagnose` dumps local variables into
+    # tracebacks, which can leak secrets, so it stays off unless explicitly asked.
+    log_level: str = "INFO"
+    log_format: LogFormat = "console"
+    log_diagnose: bool = False
+
+    # The run audit (FR-009) is emitted to stdout as one structured line and
+    # indexed in the run store. A JSONL file is written *only* when this points at
+    # a writable directory — opt-in, so a read-only container never crashes on it.
+    run_trace_dir: Path | None = None
 
 
 @lru_cache

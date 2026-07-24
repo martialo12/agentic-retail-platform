@@ -1,7 +1,9 @@
 import json
 
 import pytest
+from loguru import logger
 
+from arp.config import get_settings
 from arp.llmops.tracing import EventKind, RunTracer, trace_run
 
 
@@ -165,3 +167,54 @@ def test_a_failing_sink_never_breaks_the_run(runs_dir):
     with trace_run("a", runs_dir=runs_dir, sink=broken) as tracer:
         tracer.event(EventKind.OUTPUT, valid=True)
     assert _records(runs_dir)[0]["outcome"] == "completed"
+
+
+def _capture_audit():
+    seen = []
+    handler_id = logger.add(seen.append, level="INFO", filter=lambda r: r["extra"].get("audit"))
+    return seen, handler_id
+
+
+def test_no_file_is_written_without_a_configured_dir(tmp_path, monkeypatch):
+    """The default path must never touch the filesystem — that is the container fix."""
+    monkeypatch.chdir(tmp_path)
+    with trace_run("product-enricher"):
+        pass
+    assert not (tmp_path / "logs").exists()
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_the_audit_record_is_emitted_to_the_log_pipeline():
+    seen, handler_id = _capture_audit()
+    try:
+        with trace_run("product-enricher") as tracer:
+            tracer.event(EventKind.OUTPUT, valid=True)
+    finally:
+        logger.remove(handler_id)
+    assert len(seen) == 1
+    record = seen[0].record["extra"]["audit_record"]
+    assert record["agent_id"] == "product-enricher"
+    assert record["outcome"] == "completed"
+    assert record["events"][0]["kind"] == "output"
+
+
+def test_a_failed_run_is_emitted_at_error_level():
+    seen, handler_id = _capture_audit()
+    try:
+        with pytest.raises(RuntimeError), trace_run("a"):
+            raise RuntimeError("boom")
+    finally:
+        logger.remove(handler_id)
+    assert seen[0].record["level"].name == "ERROR"
+    assert seen[0].record["extra"]["audit_record"]["outcome"] == "failed"
+
+
+def test_run_trace_dir_env_opts_the_file_back_in(tmp_path, monkeypatch):
+    """FR-009: a JSONL file is still written when a writable dir is configured."""
+    target = tmp_path / "runs"
+    monkeypatch.setenv("RUN_TRACE_DIR", str(target))
+    get_settings.cache_clear()
+    with trace_run("product-enricher"):
+        pass
+    files = list(target.glob("*.jsonl"))
+    assert len(files) == 1

@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import yaml
+from loguru import logger
 
 from arp.registry.models import AgentSpec
 
@@ -27,6 +28,7 @@ def _spec_path(agent_id: str, agents_dir: Path) -> Path:
 
 def load_agent(agent_id: str, agents_dir: Path) -> AgentSpec:
     path = _spec_path(agent_id, agents_dir)
+    logger.debug("loading agent spec '{}' from {}", agent_id, path)
     return AgentSpec.model_validate(yaml.safe_load(path.read_text(encoding="utf-8")))
 
 

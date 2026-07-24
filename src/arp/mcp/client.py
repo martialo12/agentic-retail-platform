@@ -8,6 +8,8 @@ never silently dropped.
 import json
 from typing import Any
 
+from loguru import logger
+
 from arp.llmops.tracing import EventKind, RunTracer
 from arp.policy import PolicyError, authorize
 from arp.registry import AgentSpec
@@ -26,6 +28,7 @@ class ToolClient:
             self._trace(tool, refused=True)
             raise
 
+        logger.debug("tool call '{}' by agent '{}'", tool, self._spec.id)
         result = await self._server.call_tool(tool, arguments)
         self._trace(tool, refused=False)
         return _payload(result)

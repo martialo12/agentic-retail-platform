@@ -4,6 +4,8 @@ The registry spec is the authority: a call outside `allowed_tools` is refused
 here and never reaches the MCP server.
 """
 
+from loguru import logger
+
 from arp.registry import AgentSpec
 
 
@@ -26,4 +28,5 @@ def is_allowed(spec: AgentSpec, tool: str) -> bool:
 
 def authorize(spec: AgentSpec, tool: str) -> None:
     if not is_allowed(spec, tool):
+        logger.warning("policy refused tool '{}' for agent '{}'", tool, spec.id)
         raise PolicyError(spec.id, tool)
