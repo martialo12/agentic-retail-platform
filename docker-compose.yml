@@ -18,14 +18,25 @@ services:
   api:
     build: .
     command: ["python", "-m", "arp.api"]
+    # User config and secrets come from .env — the LLM provider, its API keys,
+    # the embedding width. Never hardcode a key here. `required: false` keeps the
+    # stack up even on a fresh checkout with no .env (the app falls back to its
+    # own defaults). Values below in `environment` still win over anything in .env.
+    env_file:
+      - path: .env
+        required: false
     environment:
-      # `fake` keeps the stack runnable with zero credentials. Swap to gemini or
-      # vertex (and add the matching keys) to drive real models.
-      LLM_PROVIDER: fake
+      # Deployment topology only — the container network and platform choices.
+      # These MUST differ from .env's local values (localhost / ./data), so they
+      # live here and override env_file. Everything user-configurable is in .env.
       DATABASE_URL: postgresql://arp:arp@db:5432/arp
       REDIS_URL: redis://redis:6379/0
       DATA_DIR: /app/data/synthetic
       API_PORT: "8000"
+      # Structured JSON to stdout — how a container ships logs. `docker compose
+      # logs api` (and Cloud Logging in prod) reads them; nothing is written to disk.
+      LOG_FORMAT: json
+      LOG_LEVEL: ${LOG_LEVEL:-info}
     ports: ["8000:8000"]
     depends_on: [db, redis]
 
