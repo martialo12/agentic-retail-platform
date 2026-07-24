@@ -41,7 +41,12 @@ variable "subnet_cidr" {
 # --- Application -------------------------------------------------------------
 
 variable "image" {
-  description = "Fully-qualified container image (Artifact Registry) for the MCP server."
+  description = "Fully-qualified container image (Artifact Registry) backing both the MCP server and the console API — same build, different entrypoint."
+  type        = string
+}
+
+variable "console_image" {
+  description = "Fully-qualified container image (Artifact Registry) for the console's static front."
   type        = string
 }
 
@@ -75,6 +80,22 @@ variable "invoker_members" {
     purpose: the tool server is never anonymously reachable, so callers must be
     named explicitly (e.g. ["serviceAccount:agent@project.iam.gserviceaccount.com"]).
   EOT
+  type        = list(string)
+  default     = []
+}
+
+variable "api_invoker_members" {
+  description = <<-EOT
+    IAM members granted roles/run.invoker on the console API. Empty on purpose:
+    the API is unauthenticated, so its safety rests on internal ingress and this
+    staying empty. Grant an invoker only once authentication exists.
+  EOT
+  type        = list(string)
+  default     = []
+}
+
+variable "console_invoker_members" {
+  description = "IAM members granted roles/run.invoker on the console front. Empty by default; the front is reached through an internal gateway, not anonymously."
   type        = list(string)
   default     = []
 }

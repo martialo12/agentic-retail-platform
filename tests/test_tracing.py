@@ -1,7 +1,9 @@
 import json
 
 import pytest
+from loguru import logger
 
+from arp.config import get_settings
 from arp.llmops.tracing import EventKind, RunTracer, trace_run
 
 
@@ -99,3 +101,120 @@ def test_record_is_one_json_line(runs_dir):
 def test_tracer_type_is_exposed(runs_dir):
     with trace_run("a", runs_dir=runs_dir) as tracer:
         assert isinstance(tracer, RunTracer)
+
+
+def test_sink_receives_each_event_as_it_happens(runs_dir):
+    """SC-008: the console needs events during the run, not a batch at the end."""
+    seen = []
+    with trace_run("a", runs_dir=runs_dir, sink=seen.append) as tracer:
+        tracer.event(EventKind.RETRIEVAL, hits=3)
+        assert len(seen) == 1, "the event must be delivered before the run ends"
+        tracer.event(EventKind.OUTPUT, valid=True)
+    assert [e["kind"] for e in seen] == ["retrieval", "output"]
+
+
+def test_sink_sees_the_same_payload_as_the_record(runs_dir):
+    seen = []
+    with trace_run("a", runs_dir=runs_dir, sink=seen.append) as tracer:
+        tracer.event(EventKind.RETRIEVAL, query="chaise", hits=3)
+    assert seen == _records(runs_dir)[0]["events"]
+
+
+def test_sink_is_optional_and_leaves_the_jsonl_unchanged(runs_dir):
+    with trace_run("a", runs_dir=runs_dir) as tracer:
+        tracer.event(EventKind.OUTPUT, valid=True)
+    assert [e["kind"] for e in _records(runs_dir)[0]["events"]] == ["output"]
+
+
+def test_run_is_indexed_in_the_store(runs_dir):
+    from arp.llmops.run_store import InMemoryRunStore
+
+    store = InMemoryRunStore()
+    with trace_run("a", runs_dir=runs_dir, store=store) as tracer:
+        tracer.event(EventKind.OUTPUT, valid=True)
+    (summary,) = store.list()
+    assert summary.run_id == tracer.run_id
+    assert summary.event_count == 1
+
+
+def test_an_escalated_run_is_indexed_as_escalated(runs_dir):
+    from arp.llmops.run_store import InMemoryRunStore
+
+    store = InMemoryRunStore()
+    with trace_run("a", runs_dir=runs_dir, store=store) as tracer:
+        tracer.event(EventKind.ESCALATION, reason="remboursement")
+    assert store.list()[0].escalated is True
+
+
+def test_an_unreachable_store_never_loses_the_audit_record(runs_dir):
+    """FR-016: the JSONL is the audit artefact; the index is best-effort."""
+
+    class Broken:
+        def save(self, record):
+            raise RuntimeError("database down")
+
+    with trace_run("a", runs_dir=runs_dir, store=Broken()) as tracer:
+        tracer.event(EventKind.OUTPUT, valid=True)
+    assert _records(runs_dir)[0]["outcome"] == "completed"
+
+
+def test_a_failing_sink_never_breaks_the_run(runs_dir):
+    """A closed browser tab is not the agent's problem; the audit record must survive."""
+
+    def broken(_event):
+        raise RuntimeError("client gone")
+
+    with trace_run("a", runs_dir=runs_dir, sink=broken) as tracer:
+        tracer.event(EventKind.OUTPUT, valid=True)
+    assert _records(runs_dir)[0]["outcome"] == "completed"
+
+
+def _capture_audit():
+    seen = []
+    handler_id = logger.add(seen.append, level="INFO", filter=lambda r: r["extra"].get("audit"))
+    return seen, handler_id
+
+
+def test_no_file_is_written_without_a_configured_dir(tmp_path, monkeypatch):
+    """The default path must never touch the filesystem — that is the container fix."""
+    monkeypatch.chdir(tmp_path)
+    with trace_run("product-enricher"):
+        pass
+    assert not (tmp_path / "logs").exists()
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_the_audit_record_is_emitted_to_the_log_pipeline():
+    seen, handler_id = _capture_audit()
+    try:
+        with trace_run("product-enricher") as tracer:
+            tracer.event(EventKind.OUTPUT, valid=True)
+    finally:
+        logger.remove(handler_id)
+    assert len(seen) == 1
+    record = seen[0].record["extra"]["audit_record"]
+    assert record["agent_id"] == "product-enricher"
+    assert record["outcome"] == "completed"
+    assert record["events"][0]["kind"] == "output"
+
+
+def test_a_failed_run_is_emitted_at_error_level():
+    seen, handler_id = _capture_audit()
+    try:
+        with pytest.raises(RuntimeError), trace_run("a"):
+            raise RuntimeError("boom")
+    finally:
+        logger.remove(handler_id)
+    assert seen[0].record["level"].name == "ERROR"
+    assert seen[0].record["extra"]["audit_record"]["outcome"] == "failed"
+
+
+def test_run_trace_dir_env_opts_the_file_back_in(tmp_path, monkeypatch):
+    """FR-009: a JSONL file is still written when a writable dir is configured."""
+    target = tmp_path / "runs"
+    monkeypatch.setenv("RUN_TRACE_DIR", str(target))
+    get_settings.cache_clear()
+    with trace_run("product-enricher"):
+        pass
+    files = list(target.glob("*.jsonl"))
+    assert len(files) == 1

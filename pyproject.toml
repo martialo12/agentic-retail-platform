@@ -7,7 +7,7 @@ dependencies = [
   "pydantic>=2.7",
   "pydantic-settings>=2.3",
   "pyyaml>=6.0",
-  "structlog>=24.1",
+  "loguru>=0.7",
 ]
 
 [dependency-groups]
@@ -25,6 +25,7 @@ agents = [
   "psycopg[binary]>=3.1",
   "pgvector>=0.3",
   "redis>=5.0",
+  "fastapi>=0.115",
 ]
 
 [tool.ruff]

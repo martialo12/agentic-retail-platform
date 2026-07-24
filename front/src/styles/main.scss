@@ -1,0 +1,155 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   "Maison" — a warm, premium instrument for governed retail AI.
+
+   The thesis is unchanged: you watch the socle decide, and governance is the
+   memorable thing. What changed is the register — from a cold control-room to a
+   calm, inviting workshop. Three voices carry it: a characterful grotesque for
+   anything a person says, a humanist sans for reading, and a monospace for the
+   machine's testimony — every timestamp, tool name and outcome the socle emits.
+
+   Only two hues mean anything. Green (`--ok`) is the system operating within its
+   rules — authorized, valid, trusted; it is also the brand's quiet thread. Amber
+   (`--stamp`) is rationed to exactly one meaning: governance intervened — a
+   refusal, an escalation. Nothing decorative may borrow the amber. That scarcity
+   is what gives a stamp its weight when it appears.
+   ───────────────────────────────────────────────────────────────────────── */
+
+:root {
+  --ink: #1a1712;
+  --ink-2: #4a443a;
+  --canvas: #fbfaf7; /* warm paper — the page ground */
+  --surface: #ffffff;
+  --surface-2: #f6f3ed; /* warm inset — panel heads, wells */
+  --rule: #eae6de;
+  --rule-strong: #d8d2c7;
+  --muted: #8c8578;
+
+  /* System operating within its rules — authorized / valid — and the brand thread. */
+  --ok: #16624b;
+  --ok-ink: #0f4636;
+  --ok-wash: #e9f1ed;
+
+  /* Rationed to governance outcomes. See the note above — do not reuse. */
+  --stamp: #b4530a;
+  --stamp-ink: #8a3f06;
+  --stamp-wash: #fbeee0;
+
+  /* Rare technical failure — distinct in hue and shape from an escalation. */
+  --error: #9b2c1b;
+  --error-wash: #f7ece8;
+
+  --display: 'Bricolage Grotesque Variable', 'Space Grotesk', system-ui, sans-serif;
+  --sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --step-1: 0.6875rem; /* eyebrows, tape labels */
+  --step0: 0.8125rem; /* data, captions */
+  --step1: 0.9375rem; /* body */
+  --step2: 1.0625rem; /* lead */
+  --step3: 1.625rem; /* view titles */
+  --step4: 2.625rem; /* hero */
+
+  --gap: 8px;
+  --pad: 24px;
+  --tape-spine: 15px; /* x-offset of the audit-tape spine */
+  --topbar-h: 60px; /* single source of truth — the sticky header height */
+
+  --shadow-card: 0 1px 2px rgba(26, 23, 18, 0.04), 0 8px 24px -16px rgba(26, 23, 18, 0.14);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: var(--step1);
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--canvas);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* The human voice: hero and view titles are set in the display grotesque. */
+.display {
+  font-family: var(--display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+}
+
+/* The machine's testimony is set in mono; that contrast against the humanist
+   sans of the conversation is the whole typographic idea. */
+.mono {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'ss01';
+}
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: var(--step-1);
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.hairline {
+  border-bottom: 1px solid var(--rule);
+}
+
+.rule-top {
+  border-top: 1px solid var(--rule);
+}
+
+/* The signature: an inked seal. Only governance outcomes wear it, and its slight
+   rotation is what makes it read as *pressed on* rather than drawn — a mark added
+   after the fact, not part of the layout. */
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55ch;
+  font-family: var(--mono);
+  font-size: var(--step-1);
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--stamp);
+  padding: 0.34em 0.72em;
+  border: 1.5px solid var(--stamp);
+  border-radius: 3px;
+  background: var(--stamp-wash);
+  box-shadow: inset 0 0 0 1px rgba(180, 83, 10, 0.22);
+  transform: rotate(-1.4deg);
+}
+
+/* Keyboard users must always see where they are. */
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+::selection {
+  background: rgba(22, 98, 75, 0.16);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

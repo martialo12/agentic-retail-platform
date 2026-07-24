@@ -80,7 +80,7 @@ def make_draft(provider: LLMProvider, prompt: str, tracer: RunTracer | None):
     return draft
 
 
-def make_emit(client: ToolClient, tracer: RunTracer | None):
+def make_emit(client: ToolClient, tracer: RunTracer | None, threshold: float | None = None):
     async def emit(state: EnricherState) -> dict:
         draft = state["draft"]
         await client.call(
@@ -89,7 +89,17 @@ def make_emit(client: ToolClient, tracer: RunTracer | None):
             attributes=draft.model_dump(),
         )
         if tracer is not None:
-            tracer.event(EventKind.OUTPUT, valid=True, confidence=draft.confidence)
+            # The enriched sheet rides on the output event so the before/after
+            # view can render it live; the same payload is in the JSONL record.
+            # `threshold` travels with `confidence` so the escalation rule stays
+            # legible even on a run that cleared it.
+            tracer.event(
+                EventKind.OUTPUT,
+                valid=True,
+                confidence=draft.confidence,
+                threshold=threshold,
+                enriched=draft.model_dump(),
+            )
         return {"output": draft, "escalated": False}
 
     return emit

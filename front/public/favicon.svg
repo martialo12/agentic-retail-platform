@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <rect width="48" height="48" rx="11" fill="#1A1712"/>
+  <!-- the audit-tape spine -->
+  <rect x="22.6" y="9" width="2.8" height="30" rx="1.4" fill="#3A342B"/>
+  <!-- an authorized mark (green) above the governance stamp (amber diamond) -->
+  <circle cx="24" cy="15" r="4" fill="#16624B"/>
+  <rect x="19.4" y="27.2" width="9.2" height="9.2" rx="1.6" transform="rotate(45 24 31.8)" fill="#B4530A"/>
+</svg>

@@ -11,6 +11,7 @@ import json
 import math
 from typing import Any, Protocol, runtime_checkable
 
+from loguru import logger
 from pydantic import BaseModel
 
 from arp.config import Settings, get_settings
@@ -252,13 +253,27 @@ class GeminiProvider:
                     timeout=120.0,
                 )
                 if response.status_code in _RETRIABLE_STATUS and not last:
+                    logger.warning(
+                        "gemini {} → {} (overloaded), retry {}/{}",
+                        path,
+                        response.status_code,
+                        attempt,
+                        GEMINI_ATTEMPTS,
+                    )
                     time.sleep(GEMINI_BACKOFF * attempt)
                     continue
                 response.raise_for_status()
                 return response.json()
-            except httpx.TransportError:
+            except httpx.TransportError as exc:
                 if last:
                     raise
+                logger.warning(
+                    "gemini {} transport error ({}), retry {}/{}",
+                    path,
+                    exc,
+                    attempt,
+                    GEMINI_ATTEMPTS,
+                )
                 time.sleep(GEMINI_BACKOFF * attempt)
         raise RuntimeError("unreachable")
 

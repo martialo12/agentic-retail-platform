@@ -15,6 +15,7 @@ from arp.config import get_settings
 from arp.mcp.repository import InMemoryRepository
 from arp.mcp.server import build_server
 from arp.models import CatalogueItem, Order
+from arp.observability.logging import configure_logging
 
 DEFAULT_PORT = 8080
 
@@ -46,6 +47,7 @@ def resolve_bind(environ: Mapping[str, str]) -> tuple[str, int]:
 
 
 def main() -> None:
+    configure_logging()
     host, port = resolve_bind(os.environ)
     server = build_server(build_repository(), host=host, port=port, stateless_http=True)
     server.run(transport="streamable-http")

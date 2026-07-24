@@ -69,7 +69,6 @@ def _render(state: dict) -> None:
         print(json.dumps(output.model_dump(), ensure_ascii=False, indent=2))
     if tools := state.get("tools_used"):
         print(f"\noutils MCP appelés: {', '.join(tools)}")
-    print("trace: logs/runs/")
 
 
 def main(argv: list[str] | None = None) -> None:

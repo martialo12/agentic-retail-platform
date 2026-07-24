@@ -12,6 +12,7 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 from langgraph.graph import END, START, StateGraph
+from loguru import logger
 
 from arp.llmops.tracing import EventKind, RunTracer
 
@@ -53,10 +54,17 @@ def confidence_gate(
         draft = state.get("draft")
         confidence = getattr(draft, "confidence", None)
         if draft is None or confidence is None or confidence < min_confidence:
+            reason = "no valid draft" if draft is None else "confidence below threshold"
+            logger.info(
+                "escalating to human: {} (confidence={}, threshold={})",
+                reason,
+                confidence,
+                min_confidence,
+            )
             if tracer is not None:
                 tracer.event(
                     EventKind.ESCALATION,
-                    reason="no valid draft" if draft is None else "confidence below threshold",
+                    reason=reason,
                     confidence=confidence,
                     threshold=min_confidence,
                 )
