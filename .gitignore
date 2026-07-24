@@ -4,10 +4,9 @@
 # The spec is the source of truth (see CLAUDE.md), so it is versioned — an
 # unreviewable spec cannot govern anything. Working notes stay local.
 .specify/
+# Working notes (design, eval, plans) stay local; only the project overview ships.
 docs/*
-!docs/superpowers/
-docs/superpowers/*
-!docs/superpowers/specs/
+!docs/index.html
 CLAUDE.md
 README.md
 

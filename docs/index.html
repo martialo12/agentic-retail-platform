@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agentic Retail Platform : le projet expliqué</title>
+<meta name="description" content="Un socle agentique réutilisable pour l'IA générative retail : le problème business, la solution, les garanties, les clients cibles et les choix techniques.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1712; --ink-2:#4a443a; --canvas:#fbfaf7; --surface:#ffffff;
+    --surface-2:#f6f3ed; --rule:#eae6de; --rule-strong:#d8d2c7; --muted:#8c8578;
+    --ok:#16624b; --ok-ink:#0f4636; --ok-wash:#e9f1ed;
+    --stamp:#b4530a; --stamp-ink:#8a3f06; --stamp-wash:#fbeee0;
+    --error:#9b2c1b;
+    --display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;
+    --sans:'IBM Plex Sans',system-ui,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+    --maxw:1080px;
+    --shadow:0 1px 2px rgba(26,23,18,.04),0 12px 30px -20px rgba(26,23,18,.18);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  body{
+    margin:0;font-family:var(--sans);font-size:16px;line-height:1.62;
+    color:var(--ink);background:var(--canvas);
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  }
+  .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+  .eyebrow{
+    font-family:var(--mono);font-size:.72rem;font-weight:500;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--muted);margin:0;
+  }
+  h1,h2,h3{font-family:var(--display);font-weight:600;letter-spacing:-.02em;line-height:1.08;margin:0}
+  a{color:var(--ok-ink);text-underline-offset:3px}
+
+  /* ── Top bar ─────────────────────────────────────────── */
+  .topbar{
+    position:sticky;top:0;z-index:20;height:56px;display:flex;align-items:center;
+    gap:14px;padding:0 28px;
+    background:color-mix(in srgb,var(--canvas) 84%,transparent);
+    backdrop-filter:saturate(1.2) blur(8px);border-bottom:1px solid var(--rule);
+  }
+  .brand{display:inline-flex;align-items:center;gap:11px;text-decoration:none;color:var(--ink)}
+  .glyph{width:26px;height:26px;flex:0 0 auto}
+  .brand b{font-family:var(--mono);font-weight:700;font-size:.95rem;letter-spacing:.02em}
+  .brand span{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+  .topnav{margin-left:auto;display:flex;gap:22px}
+  .topnav a{font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color .12s}
+  .topnav a:hover{color:var(--ink)}
+  @media(max-width:860px){.topnav{display:none}}
+
+  /* ── Hero ────────────────────────────────────────────── */
+  .hero{padding:88px 0 48px}
+  .hero .eyebrow{margin-bottom:22px}
+  .hero h1{font-size:clamp(2.4rem,6vw,4rem);max-width:16ch}
+  .hero .lede{font-size:clamp(1.05rem,2.2vw,1.35rem);color:var(--ink-2);max-width:60ch;margin:24px 0 0;line-height:1.5}
+  .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:34px}
+  .pill{
+    font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;color:var(--ink-2);
+    background:var(--surface);border:1px solid var(--rule-strong);border-radius:999px;
+    padding:6px 13px;display:inline-flex;align-items:center;gap:8px;
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+  .dot.amber{background:var(--stamp)}
+  .dot.diamond{border-radius:2px;transform:rotate(45deg)}
+
+  /* ── Section scaffolding ─────────────────────────────── */
+  section{padding:56px 0;border-top:1px solid var(--rule)}
+  .sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:8px}
+  .sec-num{font-family:var(--mono);font-size:.78rem;color:var(--stamp);font-weight:600;letter-spacing:.1em}
+  section h2{font-size:clamp(1.7rem,3.4vw,2.3rem)}
+  .sec-intro{color:var(--ink-2);max-width:64ch;font-size:1.06rem;margin:18px 0 34px}
+
+  /* ── Problem: two panes ──────────────────────────────── */
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:760px){.duo{grid-template-columns:1fr}}
+  .pane{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:24px 24px 26px;box-shadow:var(--shadow)}
+  .pane h3{font-size:1.2rem;margin-bottom:10px}
+  .pane p{margin:0;color:var(--ink-2)}
+  .tag{font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:12px}
+
+  /* ── Solution highlight ──────────────────────────────── */
+  .claim{
+    background:var(--ink);color:#f3efe6;border-radius:12px;padding:34px 32px;
+    font-family:var(--display);font-weight:500;font-size:clamp(1.3rem,2.8vw,1.8rem);
+    line-height:1.28;letter-spacing:-.01em;
+  }
+  .claim b{color:#f3efe6;font-weight:700;border-bottom:2px solid var(--stamp);padding-bottom:1px}
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:22px}
+  @media(max-width:760px){.twocol{grid-template-columns:1fr}}
+  .agent{border:1px solid var(--rule);border-left:3px solid var(--ok);border-radius:8px;background:var(--surface);padding:20px 22px}
+  .agent.tool{border-left-color:var(--stamp)}
+  .agent h3{font-size:1.05rem;margin-bottom:6px}
+  .agent .k{font-family:var(--mono);font-size:.72rem;color:var(--muted);letter-spacing:.04em}
+  .agent p{margin:8px 0 0;color:var(--ink-2);font-size:.95rem}
+
+  /* ── Flow diagram ────────────────────────────────────── */
+  .flow{background:var(--surface-2);border:1px solid var(--rule);border-radius:12px;padding:28px 26px;overflow-x:auto}
+  .flow ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+  .flow li{display:grid;grid-template-columns:118px 1fr;gap:18px;align-items:start;padding:12px 0;position:relative}
+  .flow li + li{border-top:1px dashed var(--rule-strong)}
+  .flow .layer{font-family:var(--mono);font-size:.74rem;font-weight:600;letter-spacing:.04em;color:var(--ink);text-transform:uppercase}
+  .flow .desc{color:var(--ink-2);font-size:.95rem}
+  .flow .desc b{color:var(--ink);font-weight:600}
+
+  /* ── Guarantees grid ─────────────────────────────────── */
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media(max-width:860px){.grid3{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.grid3{grid-template-columns:1fr}}
+  .card{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:20px}
+  .card .seal{
+    display:inline-flex;align-items:center;gap:.5ch;font-family:var(--mono);font-size:.64rem;font-weight:600;
+    letter-spacing:.16em;text-transform:uppercase;padding:.28em .6em;border-radius:3px;margin-bottom:12px;
+  }
+  .seal.ok{color:var(--ok);border:1.5px solid var(--ok);background:var(--ok-wash)}
+  .seal.gov{color:var(--stamp);border:1.5px solid var(--stamp);background:var(--stamp-wash);transform:rotate(-1.2deg)}
+  .card h3{font-size:1.02rem;margin-bottom:7px}
+  .card p{margin:0;color:var(--ink-2);font-size:.92rem;line-height:1.55}
+
+  /* ── Clients ─────────────────────────────────────────── */
+  .clients{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:760px){.clients{grid-template-columns:1fr}}
+  .client{display:grid;grid-template-columns:44px 1fr;gap:16px;background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:20px 22px}
+  .client .ic{width:44px;height:44px;border-radius:9px;background:var(--surface-2);border:1px solid var(--rule);display:grid;place-items:center;color:var(--ok)}
+  .client h3{font-size:1.02rem;margin-bottom:6px}
+  .client p{margin:0;color:var(--ink-2);font-size:.93rem}
+  .client .fit{font-family:var(--mono);font-size:.68rem;color:var(--stamp);letter-spacing:.06em;display:block;margin-top:9px}
+
+  /* ── Tech table ──────────────────────────────────────── */
+  .tech{width:100%;border-collapse:collapse;font-size:.94rem}
+  .tech th,.tech td{text-align:left;padding:14px 14px;border-bottom:1px solid var(--rule);vertical-align:top}
+  .tech thead th{font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:500}
+  .tech td:first-child{font-family:var(--mono);font-weight:500;color:var(--ink);white-space:nowrap}
+  .tech td:nth-child(2){color:var(--ink-2)}
+  .tech tr:hover td{background:var(--surface)}
+  .tech-wrap{overflow-x:auto;border:1px solid var(--rule);border-radius:10px;background:var(--surface)}
+  .note{background:var(--surface-2);border:1px solid var(--rule);border-left:3px solid var(--ok);border-radius:8px;padding:18px 20px;margin-top:22px;font-size:.95rem;color:var(--ink-2)}
+  .note b{color:var(--ink)}
+
+  /* ── Roadmap ─────────────────────────────────────────── */
+  .road{display:flex;flex-direction:column;gap:0}
+  .step{display:grid;grid-template-columns:20px 1fr;gap:20px;padding:18px 0;border-top:1px solid var(--rule)}
+  .step:first-child{border-top:none}
+  .rail{display:flex;flex-direction:column;align-items:center}
+  .rail .mk{width:12px;height:12px;border-radius:2px;transform:rotate(45deg);background:var(--stamp);margin-top:5px}
+  .rail .mk.done{border-radius:50%;transform:none;background:var(--ok)}
+  .rail .ln{flex:1;width:2px;background:var(--rule-strong);margin-top:6px}
+  .step h3{font-size:1.05rem;margin-bottom:5px}
+  .step .prio{font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--stamp);display:inline-block;margin-bottom:7px}
+  .step p{margin:0;color:var(--ink-2);font-size:.94rem}
+
+  /* ── Footer ──────────────────────────────────────────── */
+  footer{border-top:1px solid var(--rule);padding:40px 0 64px;color:var(--muted);font-size:.86rem}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center}
+  footer .mono{color:var(--ink-2)}
+  .kbd{font-family:var(--mono);background:var(--surface);border:1px solid var(--rule-strong);border-bottom-width:2px;border-radius:5px;padding:1px 7px;font-size:.82em;color:var(--ink)}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="#top">
+    <svg class="glyph" viewBox="0 0 48 48" aria-hidden="true">
+      <rect width="48" height="48" rx="11" fill="#1A1712"/>
+      <rect x="22.6" y="9" width="2.8" height="30" rx="1.4" fill="#3A342B"/>
+      <circle cx="24" cy="15" r="4" fill="#16624B"/>
+      <rect x="19.4" y="27.2" width="9.2" height="9.2" rx="1.6" transform="rotate(45 24 31.8)" fill="#B4530A"/>
+    </svg>
+    <b>arp</b><span>agentic retail platform</span>
+  </a>
+  <nav class="topnav">
+    <a href="#probleme">Problème</a>
+    <a href="#solution">Solution</a>
+    <a href="#fonctionnement">Fonctionnement</a>
+    <a href="#clients">Clients</a>
+    <a href="#tech">Technologies</a>
+    <a href="#production">Production</a>
+  </nav>
+</header>
+
+<a id="top"></a>
+<div class="hero wrap">
+  <p class="eyebrow">Plateforme agentique retail · Preuve de concept</p>
+  <h1>Un socle qui gouverne l'IA, pas un chatbot de plus.</h1>
+  <p class="lede">
+    Dans le retail, chaque cas d'usage d'IA générative finit en projet à part,
+    lent, coûteux et rarement cohérent avec le précédent. Et une IA qui agit sans
+    garde-fous, c'est un risque. Ce projet s'attaque aux deux en même temps : une
+    <strong>fondation réutilisable</strong> sur laquelle un nouvel agent
+    <strong>se déclare au lieu de se réécrire</strong>, et où la
+    <strong>gouvernance est là dès le départ</strong> (autorisation, validation,
+    escalade humaine, audit complet).
+  </p>
+  <div class="meta">
+    <span class="pill"><span class="dot"></span>2 agents sur un même socle</span>
+    <span class="pill"><span class="dot amber diamond"></span>Gouvernance traçée par run</span>
+    <span class="pill">Données 100&nbsp;% synthétiques</span>
+    <span class="pill">IaC écrite &amp; validée, non déployée</span>
+  </div>
+</div>
+
+<!-- 01 · PROBLÈME -->
+<section id="probleme">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">01</span><h2>Le problème business</h2></div>
+    <p class="sec-intro">
+      Deux problèmes s'entremêlent chez un acteur retail qui veut industrialiser
+      l'IA générative. Les traiter séparément produit soit du jetable, soit du risque.
+    </p>
+    <div class="duo">
+      <div class="pane">
+        <span class="tag">Problème 1 · dispersion</span>
+        <h3>Chaque cas d'usage repart de zéro</h3>
+        <p>
+          Enrichir des fiches produit, répondre aux clients, générer des visuels,
+          trier des retours… Sans fondation commune, chaque agent devient son propre
+          projet : sa propre plomberie d'appels modèle, sa propre logique d'outils,
+          sa propre sécurité. Le coût et le délai se multiplient par le nombre de
+          cas d'usage, et rien n'est cohérent d'un agent à l'autre.
+        </p>
+      </div>
+      <div class="pane">
+        <span class="tag">Problème 2 · gouvernance</span>
+        <h3>Une IA qui agit sans garde-fous est une responsabilité</h3>
+        <p>
+          Un agent qui appelle des outils peut se tromper de façon coûteuse :
+          halluciner un remboursement, écrire une donnée fausse, déborder de son
+          périmètre. Par défaut, quatre questions restent sans réponse.
+          <b>Que peut-il faire&nbsp;? Sa sortie est-elle valide&nbsp;? Quand doit-il
+          passer la main&nbsp;? Qu'a-t-il fait, et pourquoi&nbsp;?</b> À l'ère de
+          l'AI Act, « le modèle a décidé » n'est pas une réponse qu'on peut auditer.
+        </p>
+      </div>
+    </div>
+    <div class="note">
+      <b>Spécificité retail.</b> Le catalogue bouge en permanence, ses références,
+      ses matières, ses catégories&nbsp;; la connaissance ne peut donc pas être figée
+      dans un modèle. Et comme les échanges clients touchent des données sensibles,
+      l'auditabilité n'est pas un confort, c'est une contrainte.
+    </div>
+  </div>
+</section>
+
+<!-- 02 · SOLUTION -->
+<section id="solution">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">02</span><h2>La solution&nbsp;: un socle</h2></div>
+    <p class="sec-intro">
+      L'idée n'est pas de livrer un chatbot de plus, mais les <strong>fondations</strong>&nbsp;:
+      un socle agentique réutilisable où la gouvernance est native. Ajouter un agent,
+      c'est écrire un spec YAML et un prompt. Le socle, lui, ne bouge pas.
+    </p>
+    <div class="claim">
+      Un nouvel agent = <b>un fichier de registre + un prompt</b>.
+      Pas une nouvelle plateforme. C'est toute la thèse&nbsp;: on pose des
+      fondations, pas du legacy.
+    </div>
+    <p class="sec-intro" style="margin-top:30px">
+      Deux agents branchés sur ce même socle en font la preuve. Ils partagent les
+      mêmes couches d'orchestration, de policy et d'outils&nbsp;; seuls leurs specs
+      diffèrent.
+    </p>
+    <div class="twocol">
+      <div class="agent">
+        <span class="k">RAG · rédige et écrit</span>
+        <h3>product-enricher</h3>
+        <p>
+          Complète une fiche produit incomplète en attributs structurés et validés
+          (catégorie, matières, cas d'usage, description SEO), avec un score de
+          confiance, un self-check, et une escalade humaine sous le seuil.
+        </p>
+      </div>
+      <div class="agent tool">
+        <span class="k">Multi-outils · lecture seule</span>
+        <h3>customer-assistant</h3>
+        <p>
+          Répond aux questions clients via des outils (<span class="mono">lookup_order</span>,
+          <span class="mono">get_product</span>, <span class="mono">search_catalog</span>).
+          Il n'a <b>pas</b> le droit d'écrire, et s'il tente quelque chose hors de son
+          périmètre, l'appel est refusé puis tracé, avant même de solliciter le modèle.
+        </p>
+      </div>
+    </div>
+    <div class="note">
+      <b>Rendre la gouvernance visible.</b> Une console web laisse un décideur non
+      technique poser une question et <em>voir</em> le socle décider en direct&nbsp;:
+      les outils autorisés, un refus, une escalade, tout s'imprime au fil de l'eau.
+      Ce qui n'était lisible que dans un terminal devient jugeable par un acheteur.
+    </div>
+  </div>
+</section>
+
+<!-- 03 · FONCTIONNEMENT -->
+<section id="fonctionnement">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">03</span><h2>Comment ça marche</h2></div>
+    <p class="sec-intro">
+      Sept couches, chacune avec une seule responsabilité. Une requête les traverse
+      dans l'ordre&nbsp;; à chaque étape, le socle trace ce qu'il fait.
+    </p>
+    <div class="flow">
+      <ol>
+        <li><span class="layer">Registry</span><span class="desc">Déclare un agent en YAML&nbsp;: <b>modèle, outils autorisés, politique d'escalade, owner</b>. C'est tout ce que veut dire « ajouter un agent ».</span></li>
+        <li><span class="layer">Policy</span><span class="desc">Autorise ou <b>refuse chaque appel d'outil</b> selon le spec de l'agent. Un appel hors périmètre est refusé <em>et tracé</em>, jamais exécuté.</span></li>
+        <li><span class="layer">MCP</span><span class="desc">Serveur qui expose les outils métier. Les agents ne touchent la logique métier <b>que par lui</b>, jamais en direct.</span></li>
+        <li><span class="layer">Orchestration</span><span class="desc">Machine à états LangGraph&nbsp;: <b>retrieve → draft → self-check → (escalade | émettre)</b>. Le self-check est le point de contrôle humain-dans-la-boucle.</span></li>
+        <li><span class="layer">RAG</span><span class="desc">Récupère le contexte catalogue dans <b>pgvector</b> en local, via une interface compatible <b>AlloyDB</b> en production.</span></li>
+        <li><span class="layer">LLMOps</span><span class="desc">Un <b>enregistrement d'audit structuré par run</b> (récupération, appel outil, appel modèle, escalade, sortie) + un harness d'éval sur golden set.</span></li>
+        <li><span class="layer">IaC</span><span class="desc">Dockerfile, Terraform (Cloud Run / AlloyDB / GCS / Memorystore), manifests K8s, le tout <b>validé sans être déployé</b>.</span></li>
+      </ol>
+    </div>
+
+    <div class="sec-head" style="margin-top:44px"><span class="sec-num">03·b</span><h2>Les garanties</h2></div>
+    <p class="sec-intro">Ce que le socle promet par construction, et que les tests vérifient.</p>
+    <div class="grid3">
+      <div class="card"><span class="seal ok">autorisé</span><h3>Modèle interchangeable</h3><p>Tout appel passe par une seule interface <span class="mono">LLMProvider</span>. Vertex Gemini par défaut, fallback local, fake déterministe en test, sans jamais toucher au code métier.</p></div>
+      <div class="card"><span class="seal ok">validé</span><h3>Sortie structurée uniquement</h3><p>Chaque résultat modèle est validé contre un schéma Pydantic. Échec → retry borné → escalade. Jamais de sortie non validée émise.</p></div>
+      <div class="card"><span class="seal gov">refusé</span><h3>La policy fait autorité</h3><p>Un agent ne peut appeler un outil que si son spec l'y autorise. Les appels hors périmètre sont refusés et tracés, jamais exécutés.</p></div>
+      <div class="card"><span class="seal gov">escalade</span><h3>L'humain, résultat de 1re classe</h3><p>Sous le seuil de confiance ou sur intention sensible, le run passe la main à un humain. Une escalade n'est pas une erreur, c'est une issue.</p></div>
+      <div class="card"><span class="seal ok">tracé</span><h3>Un audit par run</h3><p>Un enregistrement structuré par run part sur la sortie standard (collectée par la plateforme) et est indexé pour la console. Prêt pour une revue type AI&nbsp;Act.</p></div>
+      <div class="card"><span class="seal ok">synthétique</span><h3>Zéro donnée réelle</h3><p>Le corpus est 100&nbsp;% synthétique. Aucune donnée client n'est ingérée ni stockée&nbsp;; le POC ne dépend d'aucun système externe.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 · CLIENTS -->
+<section id="clients">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">04</span><h2>À quels clients c'est destiné</h2></div>
+    <p class="sec-intro">
+      La cible n'est pas « qui veut un chatbot », mais « qui veut une fondation
+      gouvernée plutôt que N bots jetables ». Concrètement&nbsp;:
+    </p>
+    <div class="clients">
+      <div class="client">
+        <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l1-5h16l1 5M4 9h16v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9zM9 13h6"/></svg></div>
+        <div>
+          <h3>Retail &amp; e-commerce à grand catalogue</h3>
+          <p>Des milliers de fiches à enrichir, normaliser et tenir à jour. L'enrichissement structuré et auditable passe à l'échelle sans réécrire un pipeline par famille de produits.</p>
+          <span class="fit">idéal si · catalogue vaste et mouvant</span>
+        </div>
+      </div>
+      <div class="client">
+        <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+        <div>
+          <h3>Marques à fort volume de service client</h3>
+          <p>Un assistant qui répond via des outils réels (commandes, produits), refuse ce qui n'est pas de son ressort, et passe la main à un conseiller sur les sujets sensibles, sans jamais faire passer une réponse non validée pour vraie.</p>
+          <span class="fit">idéal si · volume de tickets élevé</span>
+        </div>
+      </div>
+      <div class="client">
+        <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <div>
+          <h3>Contextes régulés / sensibles à la conformité</h3>
+          <p>Là où « le modèle a décidé » ne suffit pas. Chaque run laisse une trace structurée des documents et outils qui ont fondé la réponse&nbsp;: de quoi la défendre face à une exigence AI&nbsp;Act.</p>
+          <span class="fit">idéal si · auditabilité exigée</span>
+        </div>
+      </div>
+      <div class="client">
+        <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h10"/><circle cx="19" cy="17" r="2"/></svg></div>
+        <div>
+          <h3>Équipes produit qui veulent aller vite</h3>
+          <p>Marketplaces et éditeurs qui prévoient plusieurs agents. Le socle transforme « un nouveau cas d'usage » en un spec de config, pas en un nouveau chantier d'infrastructure.</p>
+          <span class="fit">idéal si · plusieurs agents prévus</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 · TECHNOLOGIES -->
+<section id="tech">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">05</span><h2>Les technologies, et pourquoi</h2></div>
+    <p class="sec-intro">
+      Chaque choix sert une propriété du socle&nbsp;: sa portabilité, sa gouvernance,
+      ou sa parité entre le local et la production. Rien n'est là par habitude.
+    </p>
+    <div class="tech-wrap">
+      <table class="tech">
+        <thead><tr><th>Technologie</th><th>Pourquoi celle-ci</th></tr></thead>
+        <tbody>
+          <tr><td>Python 3.11 · uv</td><td>Langage de référence de l'écosystème IA&nbsp;; <span class="mono">uv</span> donne des installs reproductibles et rapides (lockfile), et provisionne l'interpréteur.</td></tr>
+          <tr><td>LangGraph</td><td>Orchestrer un agent comme une <b>machine à états explicite</b>, avec un chemin d'escalade humain, plutôt que comme une chaîne d'appels opaque.</td></tr>
+          <tr><td>MCP</td><td>Isole les outils métier derrière un serveur&nbsp;: les agents n'accèdent jamais à la logique en direct, ce qui rend la couche policy réellement contraignante.</td></tr>
+          <tr><td>Pydantic</td><td>Chaque sortie modèle est <b>validée contre un schéma</b>. C'est ce qui permet de garantir « jamais de sortie non validée émise ».</td></tr>
+          <tr><td>Interface <span class="mono">LLMProvider</span></td><td>Un seul point de passage pour tout appel modèle&nbsp;: Vertex Gemini, un endpoint local, ou un fake déterministe en test. Changer de fournisseur = une variable d'env, pas du code.</td></tr>
+          <tr><td>pgvector → AlloyDB</td><td>Même interface SQL en local (pgvector) et en prod (AlloyDB). Le RAG se teste sur un laptop et se déploie sans divergence de code.</td></tr>
+          <tr><td>Redis / Memorystore</td><td>Cache et état partagé, avec le même service managé en local et sur GCP.</td></tr>
+          <tr><td>FastAPI + SSE</td><td>Expose les agents en HTTP et <b>diffuse chaque événement d'un run en direct</b> (Server-Sent Events), pas seulement à la fin. C'est ce qui rend la console vivante.</td></tr>
+          <tr><td>Loguru</td><td>Un seul pipeline de logs structurés vers stdout&nbsp;; l'audit du run devient une ligne collectable par la plateforme, jamais un fichier sur un disque éphémère.</td></tr>
+          <tr><td>Vue 3 + Vuetify</td><td>La console de démonstration&nbsp;: streaming des runs, escalade présentée comme une issue de 1re classe, observabilité des exécutions passées.</td></tr>
+          <tr><td>Docker · Terraform/OpenTofu · K8s</td><td>IaC prête pour GCP (Cloud Run, AlloyDB, GCS, Memorystore) et Kubernetes, <b>validée sans être déployée</b>. L'API non authentifiée y est déclarée non-publique par construction.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">
+      <b>RAG d'abord, fine-tuning plus tard, et sur le style, jamais sur la connaissance.</b>
+      Le fine-tuning enseigne une <em>forme</em>&nbsp;; le RAG, lui, fournit un <em>fait</em>.
+      Or l'enrichissement catalogue est un problème de faits qui <b>changent en permanence</b>.
+      Un index vectoriel se met à jour avec un <span class="mono">make&nbsp;ingest</span>,
+      alors qu'un modèle figé devient obsolète le jour même de sa mise en production.
+      Le RAG a un autre avantage&nbsp;: il trace les documents qui ont fondé la réponse,
+      et sa boucle d'itération se compte en secondes. Le fine-tuning reprendra la main
+      le jour où le RAG plafonnera sur le <em>ton</em>, où le coût par appel deviendra
+      dominant, ou encore quand les paires (fiche&nbsp;→&nbsp;enrichissement validé) finiront
+      par exister, ce que produisent justement, au fil de l'eau, les escalades revues
+      par un humain.
+    </div>
+  </div>
+</section>
+
+<!-- 06 · PRODUCTION -->
+<section id="production">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">06</span><h2>Pour que la solution soit complète</h2></div>
+    <p class="sec-intro">
+      Ce POC prouve les fondations&nbsp;; il n'est pas un produit. Voici, par priorité
+      et sans langue de bois, ce qui manque pour aller en production.
+    </p>
+    <div class="road">
+      <div class="step">
+        <div class="rail"><span class="mk"></span><span class="ln"></span></div>
+        <div>
+          <span class="prio">Priorité 1 · bloquant</span>
+          <h3>Authentification &amp; autorisation</h3>
+          <p>Le plus gros écart. L'API est non authentifiée&nbsp;: un endpoint ouvert qui invoque des modèles payants est un budget ouvert. L'IaC la déclare déjà non-publique par construction, mais l'auth (et une autorisation par appelant) est le préalable à toute exposition.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="rail"><span class="mk"></span><span class="ln"></span></div>
+        <div>
+          <span class="prio">Priorité 1 · crédibilité</span>
+          <h3>Chiffres d'éval réels</h3>
+          <p>Le harness n'a tourné qu'avec le fake provider. Le lancer contre Vertex remplirait le tableau RAG contre sans-retrieval, le seul chiffre qui rende la position « RAG d'abord » défendable plutôt qu'affirmée en l'air.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="rail"><span class="mk"></span><span class="ln"></span></div>
+        <div>
+          <span class="prio">Priorité 2 · exploitation</span>
+          <h3>Déploiement GCP réel &amp; garde-fous de coût</h3>
+          <p>L'IaC est écrite et validée, mais pas déployée. Il reste à ajouter le rate-limiting, des budgets et des alertes de dépense, des quotas par agent. Un agent qui appelle des modèles payants doit être borné.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="rail"><span class="mk"></span><span class="ln"></span></div>
+        <div>
+          <span class="prio">Priorité 2 · usage</span>
+          <h3>État conversationnel &amp; mémoire</h3>
+          <p>La console est mono-tour, sans comptes ni historique. Un vrai assistant a besoin de contexte multi-tours et d'une mémoire, laissés volontairement hors du périmètre du POC.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="rail"><span class="mk"></span><span class="ln"></span></div>
+        <div>
+          <span class="prio">Priorité 3 · robustesse</span>
+          <h3>Durcissement injection de prompt &amp; boucle de revue</h3>
+          <p>Des défenses contre l'injection de prompt sur les entrées clients, et une boucle où les escalades revues par un humain alimentent le corpus de paires. C'est ce corpus qui nourrira, plus tard, un fine-tuning sur le style.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="rail"><span class="mk done"></span></div>
+        <div>
+          <span class="prio" style="color:var(--ok)">Déjà livré</span>
+          <h3>Le socle, les deux agents, l'IaC, la console, l'observabilité</h3>
+          <p>Registry, policy, MCP, orchestration, RAG, LLMOps, logging centralisé, IaC validée, et une console où l'escalade renvoie vers un humain (téléphone / WhatsApp). C'est la fondation sur laquelle tout le reste se branche.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span class="mono">agentic-retail-platform · POC</span>
+    <span>Données synthétiques uniquement · IaC validée, non déployée · aucune donnée client</span>
+  </div>
+</footer>
+
+</body>
+</html>
