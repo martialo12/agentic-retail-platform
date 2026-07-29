@@ -129,49 +129,61 @@ variable "vertex_embed_model" {
   default     = "gemini-embedding-2"
 }
 
-# --- AlloyDB -----------------------------------------------------------------
+# --- Base de donnees -----------------------------------------------------------
 
-variable "alloydb_cpu_count" {
-  description = "vCPUs on the AlloyDB primary instance."
-  type        = number
-  default     = 2
+variable "postgres_version" {
+  description = "Version majeure de PostgreSQL. pgvector est disponible a partir de la 15."
+  type        = string
+  default     = "POSTGRES_16"
 }
 
-variable "alloydb_user" {
-  description = "Initial AlloyDB superuser."
+variable "cloudsql_tier" {
+  description = <<-EOT
+    Gabarit de l'instance Cloud SQL. `db-f1-micro` suffit au corpus synthetique
+    du POC et coute un ordre de grandeur de moins qu'AlloyDB. Monter en gamme
+    (db-custom-2-7680 et au dela) des que le catalogue devient reel.
+  EOT
+  type        = string
+  default     = "db-f1-micro"
+}
+
+variable "cloudsql_edition" {
+  description = <<-EOT
+    Edition Cloud SQL. `ENTERPRISE` est la seule qui accepte les gabarits
+    partages comme db-f1-micro ; `ENTERPRISE_PLUS`, devenu le defaut cote
+    Google, impose des machines dediees bien plus cheres.
+  EOT
+  type        = string
+  default     = "ENTERPRISE"
+
+  validation {
+    condition     = contains(["ENTERPRISE", "ENTERPRISE_PLUS"], var.cloudsql_edition)
+    error_message = "cloudsql_edition doit valoir ENTERPRISE ou ENTERPRISE_PLUS."
+  }
+}
+
+variable "cloudsql_disk_gb" {
+  description = "Disque initial en Gio. L'autoresize est actif, ce n'est qu'un plancher."
+  type        = number
+  default     = 10
+}
+
+variable "database_user" {
+  description = "Compte applicatif proprietaire du corpus et du registre des runs."
   type        = string
   default     = "arp"
 }
 
-variable "alloydb_password" {
-  description = "Initial AlloyDB password. Supply via TF_VAR_alloydb_password, never in VCS."
+variable "database_password" {
+  description = "Mot de passe du compte applicatif. A fournir via TF_VAR_database_password ou un tfvars ignore par git, jamais dans le depot."
   type        = string
   sensitive   = true
 }
 
-variable "alloydb_database" {
-  description = "Database holding the pgvector corpus."
+variable "database_name" {
+  description = "Base portant le corpus pgvector et le registre des runs."
   type        = string
   default     = "arp"
-}
-
-# --- Memorystore -------------------------------------------------------------
-
-variable "redis_tier" {
-  description = "Memorystore tier. STANDARD_HA gives a replica and automatic failover."
-  type        = string
-  default     = "BASIC"
-
-  validation {
-    condition     = contains(["BASIC", "STANDARD_HA"], var.redis_tier)
-    error_message = "redis_tier must be BASIC or STANDARD_HA."
-  }
-}
-
-variable "redis_memory_gb" {
-  description = "Memorystore capacity in GiB."
-  type        = number
-  default     = 1
 }
 
 # --- Storage -----------------------------------------------------------------
@@ -180,4 +192,17 @@ variable "trace_retention_days" {
   description = "Days run traces are kept before deletion. Set to satisfy your audit policy."
   type        = number
   default     = 365
+}
+
+# --- Console -----------------------------------------------------------------
+
+variable "console_origins" {
+  description = <<-EOT
+    Origins allowed to call the API (CORS). Left empty on the first apply because
+    the console's URL does not exist yet; fill it with the `console_service_url`
+    output and apply again. Naming the origin is deliberate — a wildcard would
+    let any page on the internet drive an unauthenticated API.
+  EOT
+  type        = list(string)
+  default     = []
 }

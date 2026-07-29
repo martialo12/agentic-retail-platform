@@ -25,8 +25,7 @@ locals {
 resource "google_project_service" "required" {
   for_each = toset([
     "run.googleapis.com",
-    "alloydb.googleapis.com",
-    "redis.googleapis.com",
+    "sqladmin.googleapis.com",
     "aiplatform.googleapis.com",
     "secretmanager.googleapis.com",
     "servicenetworking.googleapis.com",
@@ -88,8 +87,8 @@ resource "google_project_iam_member" "app_vertex_user" {
   member  = "serviceAccount:${google_service_account.app.email}"
 }
 
-resource "google_project_iam_member" "app_alloydb_client" {
+resource "google_project_iam_member" "app_sql_client" {
   project = var.project_id
-  role    = "roles/alloydb.client"
+  role    = "roles/cloudsql.client"
   member  = "serviceAccount:${google_service_account.app.email}"
 }
