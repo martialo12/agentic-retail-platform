@@ -66,14 +66,10 @@ resource "google_cloud_run_v2_service" "mcp" {
         value = var.vertex_embed_model
       }
 
+      # Cloud Logging n'indexe les champs que si la sortie est structuree.
       env {
-        name  = "REDIS_URL"
-        value = "redis://${google_redis_instance.cache.host}:${google_redis_instance.cache.port}/0"
-      }
-
-      env {
-        name  = "TRACE_BUCKET"
-        value = google_storage_bucket.traces.name
+        name  = "LOG_FORMAT"
+        value = "json"
       }
 
       env {
@@ -105,7 +101,12 @@ resource "google_cloud_run_v2_service" "mcp" {
 
   depends_on = [
     google_secret_manager_secret_iam_member.app_database_url,
-    google_alloydb_instance.primary,
+    # La version, pas seulement le conteneur du secret : Cloud Run resout
+    # `versions/latest` a la creation et echoue si aucune version n'existe
+    # encore. L'instance seule ne suffit pas, la version attend aussi la base
+    # et l'utilisateur.
+    google_secret_manager_secret_version.database_url,
+    google_sql_database_instance.main,
   ]
 }
 
@@ -175,6 +176,16 @@ resource "google_cloud_run_v2_service" "api" {
         value = "8080"
       }
 
+      # The console is a different origin, so it must be named. Deliberately a
+      # variable rather than a reference to the console service: the console
+      # already reads this service's URL, and referencing it back would cycle.
+      # First apply leaves it empty, then set console_origins to the
+      # `console_service_url` output and apply again.
+      env {
+        name  = "CORS_ORIGINS"
+        value = join(",", var.console_origins)
+      }
+
       env {
         name  = "LLM_PROVIDER"
         value = "vertex"
@@ -200,14 +211,10 @@ resource "google_cloud_run_v2_service" "api" {
         value = var.vertex_embed_model
       }
 
+      # Cloud Logging n'indexe les champs que si la sortie est structuree.
       env {
-        name  = "REDIS_URL"
-        value = "redis://${google_redis_instance.cache.host}:${google_redis_instance.cache.port}/0"
-      }
-
-      env {
-        name  = "TRACE_BUCKET"
-        value = google_storage_bucket.traces.name
+        name  = "LOG_FORMAT"
+        value = "json"
       }
 
       env {
@@ -239,7 +246,12 @@ resource "google_cloud_run_v2_service" "api" {
 
   depends_on = [
     google_secret_manager_secret_iam_member.app_database_url,
-    google_alloydb_instance.primary,
+    # La version, pas seulement le conteneur du secret : Cloud Run resout
+    # `versions/latest` a la creation et echoue si aucune version n'existe
+    # encore. L'instance seule ne suffit pas, la version attend aussi la base
+    # et l'utilisateur.
+    google_secret_manager_secret_version.database_url,
+    google_sql_database_instance.main,
   ]
 }
 
@@ -282,6 +294,16 @@ resource "google_cloud_run_v2_service" "console" {
 
     containers {
       image = var.console_image
+
+      # Read at start-up by the image's entrypoint, which rewrites /config.js.
+      # The bundle therefore never hardcodes an API URL, and the reference runs
+      # one way only — console depends on api, never the reverse, or the graph
+      # would cycle. The API learns the console's origin through
+      # `var.console_origins` instead (see CORS_ORIGINS above).
+      env {
+        name  = "API_BASE"
+        value = google_cloud_run_v2_service.api.uri
+      }
 
       ports {
         container_port = 8080
