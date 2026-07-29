@@ -52,7 +52,14 @@ logs/
 crash.log
 *.tfvars
 !*.tfvars.example
+# Un plan enregistre embarque la valeur des variables, y compris les sensibles.
+tfplan
+*.tfplan
 
 # Front-end build artefacts
 front/node_modules/
 front/dist/
+
+# Supports de communication : projets Remotion / HyperFrames, rushes 4K et
+# rendus MP4. Plusieurs gigaoctets de binaires, sans rapport avec le socle.
+videos/
