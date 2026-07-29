@@ -1,10 +1,13 @@
 """Runtime settings, sourced from the environment (see `.env.example`)."""
 
+import json
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal
+from typing import Annotated, Literal
+from urllib.parse import quote, urlsplit, urlunsplit
 
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 Provider = Literal["vertex", "gemini", "local", "fake"]
 LogFormat = Literal["console", "json"]
@@ -62,6 +65,51 @@ class Settings(BaseSettings):
     # indexed in the run store. A JSONL file is written *only* when this points at
     # a writable directory — opt-in, so a read-only container never crashes on it.
     run_trace_dir: Path | None = None
+
+    # The console is always a different origin: Vite's port locally, its own
+    # Cloud Run URL once deployed. The default covers a source checkout; a
+    # deployment must name the console explicitly. Never widened to "*", which
+    # would let any page on the internet drive an unauthenticated API.
+    # `NoDecode` turns off the JSON decoding pydantic-settings applies to complex
+    # fields, which would reject a plain comma-separated value before any
+    # validator ran. The parsing below then accepts both forms.
+    cors_origins: Annotated[list[str], NoDecode] = [
+        "http://localhost:5173",
+        "http://localhost:4173",
+    ]
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def _split_origins(cls, value: object) -> object:
+        """Accept a comma-separated string, not only JSON.
+
+        Terraform injects a plain env var, and quoting a JSON list through HCL
+        into Cloud Run is a footgun nobody should have to remember.
+        """
+        if isinstance(value, str):
+            text = value.strip()
+            if text.startswith("["):
+                return json.loads(text)
+            return [item.strip() for item in text.split(",") if item.strip()]
+        return value
+
+
+def redact_dsn(dsn: str) -> str:
+    """Mask the password in a connection string before it reaches a log.
+
+    Cloud Logging keeps every line, so a DSN printed once is a credential
+    readable by anyone with log access, forever. Use this at every boundary
+    where a connection string could be written out.
+    """
+    parsed = urlsplit(dsn)
+    if not parsed.password:
+        return dsn
+    user = quote(parsed.username or "", safe="")
+    host = parsed.hostname or ""
+    port = f":{parsed.port}" if parsed.port else ""
+    return urlunsplit(
+        (parsed.scheme, f"{user}:***@{host}{port}", parsed.path, parsed.query, parsed.fragment)
+    )
 
 
 @lru_cache

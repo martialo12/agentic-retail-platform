@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field, field_validator
 from arp.api.middleware import RequestContextMiddleware
 from arp.api.streaming import stream_run
 from arp.api.wiring import Deps, build_assistant_graph, build_deps, build_enricher_graph
+from arp.config import get_settings
 
 # Proxies buffer by default, which would defeat the whole point of streaming.
 STREAM_HEADERS = {"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
@@ -42,10 +43,11 @@ def create_app(deps: Deps | None = None) -> FastAPI:
     # request, so every downstream line — routes, policy, tracer — carries it.
     app.add_middleware(RequestContextMiddleware)
 
-    # The front runs on Vite's port in development, so it is a different origin.
+    # The console is always a different origin, so it must be named: Vite's port
+    # locally, the console's own URL once deployed (CORS_ORIGINS).
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:5173", "http://localhost:4173"],
+        allow_origins=get_settings().cors_origins,
         allow_methods=["*"],
         allow_headers=["*"],
     )
