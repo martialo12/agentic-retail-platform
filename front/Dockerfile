@@ -11,9 +11,10 @@ RUN npm ci
 
 COPY . .
 
-# Baked at build time. The default suits the local compose demo (the API is
-# reachable at localhost:8000, which its CORS allow-list already trusts); a real
-# deploy overrides it with the API's own URL: --build-arg VITE_API_BASE=…
+# Build-time fallback only. The deployed console resolves its API at start-up
+# from the API_BASE environment variable (see docker-entrypoint.d), because the
+# API's URL does not exist until the platform is applied. This default suits the
+# local compose demo, whose CORS allow-list already trusts localhost:8000.
 ARG VITE_API_BASE=http://localhost:8000
 ENV VITE_API_BASE=$VITE_API_BASE
 RUN npm run build
@@ -27,6 +28,10 @@ LABEL org.opencontainers.image.title="arp-console" \
 
 # Replace the image's default server with the SPA config (history fallback).
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist /usr/share/nginx/html
+
+# Owned by the runtime user: the entrypoint rewrites config.js in place, and
+# nginx-unprivileged runs as uid 101, not root.
+COPY --from=build --chown=101:101 /app/dist /usr/share/nginx/html
+COPY --chmod=755 docker-entrypoint.d/40-arp-api-base.sh /docker-entrypoint.d/
 
 EXPOSE 8080

@@ -5,6 +5,9 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Console socle · arp</title>
+    <!-- Runtime configuration, rewritten by the container at start-up. Must load
+         before the bundle, and stay uncached so a redeploy takes effect. -->
+    <script src="/config.js"></script>
   </head>
   <body>
     <div id="app"></div>

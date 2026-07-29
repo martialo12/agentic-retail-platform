@@ -1,4 +1,9 @@
-const BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:8000'
+// Resolved at runtime first: the API's URL only exists once the platform is
+// deployed, so baking it into the bundle would force a rebuild after every
+// apply. `/config.js` is rewritten from the container's API_BASE at start-up;
+// the build-time value stays as the local-development fallback.
+const BASE =
+  window.__ARP_API_BASE__ || import.meta.env.VITE_API_BASE || 'http://localhost:8000'
 
 export interface RunEvent {
   kind: string
