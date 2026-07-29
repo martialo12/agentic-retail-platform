@@ -6,7 +6,7 @@ Run via `make ingest` (equivalently `python -m arp.rag.ingest`).
 import json
 from pathlib import Path
 
-from arp.config import get_settings
+from arp.config import get_settings, redact_dsn
 from arp.llm.provider import LLMProvider, get_provider
 from arp.models import CatalogueItem
 from arp.rag.store import VectorStore
@@ -50,7 +50,7 @@ def main() -> None:
     items = load_catalogue()
     store = PgVectorStore(settings.database_url, dim=settings.embed_dim)
     count = ingest(get_provider(settings), store, items)
-    print(f"ingested {count} catalogue items into {settings.database_url}")
+    print(f"ingested {count} catalogue items into {redact_dsn(settings.database_url)}")
 
 
 if __name__ == "__main__":
