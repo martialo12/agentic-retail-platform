@@ -305,6 +305,13 @@ resource "google_cloud_run_v2_service" "console" {
         value = google_cloud_run_v2_service.api.uri
       }
 
+      # Vide par defaut : la console ne mesure rien tant qu'un identifiant n'est
+      # pas fourni explicitement.
+      env {
+        name  = "GA_MEASUREMENT_ID"
+        value = var.ga_measurement_id
+      }
+
       ports {
         container_port = 8080
       }

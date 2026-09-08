@@ -206,3 +206,13 @@ variable "console_origins" {
   type        = list(string)
   default     = []
 }
+
+variable "ga_measurement_id" {
+  description = <<-EOT
+    Identifiant de mesure GA4 de la console (G-XXXXXXXXXX). Vide, aucun script
+    de mesure n'est charge : pas de tiers, pas de cookie. L'activation est donc
+    un geste explicite.
+  EOT
+  type        = string
+  default     = ""
+}
