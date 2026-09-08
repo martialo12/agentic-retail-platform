@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { track } from '@/services/analytics'
 import { computed, onBeforeUnmount, ref } from 'vue'
 
 import HumanHandoff from '@/components/socle/HumanHandoff.vue'
@@ -26,6 +27,12 @@ function ask(question: string) {
   if (!q || store.running) return
   asked.value = q
   draft.value = ''
+  // La question elle-meme n'est jamais envoyee a la mesure : seulement si elle
+  // vient d'un exemple propose ou d'une saisie libre, et sa longueur.
+  track('question_asked', {
+    source: examples.some((e) => e.question === q) ? 'exemple' : 'saisie',
+    length: q.length,
+  })
   store.start('/api/assistant/ask', { question: q })
 }
 

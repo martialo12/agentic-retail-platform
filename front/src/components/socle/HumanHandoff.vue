@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
+
+import { track } from '@/services/analytics'
 
 /**
  * The handoff moment: the socle stepped out, a person steps in. This is an
@@ -13,6 +15,10 @@ const props = defineProps<{
    *  human arrives with context instead of a cold "bonjour". */
   question?: string
 }>()
+
+// La carte s'affiche : le socle a passe la main. C'est l'evenement qui mesure
+// la gouvernance a l'oeuvre, et le denominateur du taux de reprise ci-dessous.
+onMounted(() => track('handoff_shown', { reason: props.reason ?? 'inconnu' }))
 
 // International, no spaces, no leading zero — wa.me and tel: both want it raw.
 const RAW = '33753149032'
@@ -51,6 +57,7 @@ const whatsappHref = computed(() => {
         :href="whatsappHref"
         target="_blank"
         rel="noopener noreferrer"
+        @click="track('handoff_clicked', { canal: 'whatsapp' })"
       >
         <svg
           class="glyph"
@@ -71,6 +78,7 @@ const whatsappHref = computed(() => {
       <a
         class="action action--call"
         :href="telHref"
+        @click="track('handoff_clicked', { canal: 'telephone' })"
       >
         <svg
           class="glyph"

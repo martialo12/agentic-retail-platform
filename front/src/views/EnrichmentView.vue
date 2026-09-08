@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { track } from '@/services/analytics'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import SoclePanel from '@/components/socle/SoclePanel.vue'
@@ -55,6 +56,12 @@ onBeforeUnmount(() => store.reset())
 function enrich(sheet: Sheet) {
   if (store.running) return
   selectedId.value = sheet.id
+  track('enrichment_started', {
+    product_id: sheet.id,
+    // Une fiche sans specification est le cas interessant : c'est celle qui
+    // peut tomber sous le seuil et partir en relecture humaine.
+    incomplete: Object.keys(sheet.specs).length === 0,
+  })
   store.start('/api/enricher/enrich', { product_id: sheet.id })
 }
 </script>
