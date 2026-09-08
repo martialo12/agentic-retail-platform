@@ -7,8 +7,8 @@ tracing/eval, and GCP-ready IaC. Adding a new agent is a **registry YAML + a
 prompt**, not a rewrite.
 
 > POC destiné à démontrer la capacité à *poser les fondations* d'une plateforme
-> agentique multi-cas d'usage. Données 100% synthétiques ; aucun déploiement réel
-> (l'IaC est écrite et validée, pas déployée).
+> agentique multi-cas d'usage. Données 100% synthétiques, jamais de donnée client.
+> Déployé sur GCP (Cloud Run, europe-west1) pour la période de démonstration.
 
 ## Architecture
 
@@ -80,15 +80,27 @@ make up          # ou tout le stack conteneurisé : db + redis + api + front
 3. Enrichissement de la fiche `p001` — avant/après, la confiance mesurée affichée
    contre le seuil de la spec : sous le seuil, rien n'est écrit.
 
-> **L'API est délibérément non authentifiée** (FR-018) et ne doit **jamais** être
-> exposée. L'IaC porte cette contrainte par construction — ingress interne et
-> `invoker_members` vide — plutôt qu'un avertissement : accorder un invoker est
-> l'acte délibéré qui doit attendre l'authentification.
+> **L'API n'est pas authentifiée** (FR-018). L'IaC porte la contrainte par
+> construction plutôt que par avertissement : `ingress` interne et
+> `invoker_members` vide sont les valeurs par défaut, si bien qu'ouvrir le
+> service demande un geste explicite, tracé dans les variables.
+>
+> Le déploiement de démonstration pose précisément ce geste : `ingress` ouvert et
+> `allUsers` en invoker, pour que la console soit accessible sans compte GCP.
+> C'est une exception assumée et temporaire, à refermer à la fin des tests.
+> L'authentification reste le seul vrai obstacle entre ce POC et un pilote payant.
+
+**Mesure d'usage.** La console sait remonter une poignée d'événements à GA4
+(question posée, enrichissement lancé, escalade affichée puis reprise par un
+canal). Rien n'est chargé tant que `GA_MEASUREMENT_ID` est vide : pas de script
+tiers, pas de cookie, et c'est l'état par défaut en développement comme en test.
+Le contenu tapé par un visiteur ne part jamais dans la mesure, seulement des
+catégories. Le consentement démarre refusé (Consent Mode v2).
 
 La définition de *done* du dépôt inclut désormais `make front` (lint +
 type-check + build de la console) en plus de `make lint && make test`.
 
-## Infrastructure (écrite et validée, non déployée)
+## Infrastructure
 
 ```bash
 make docker        # image de prod multi-stage, non-root, CMD = serveur MCP
@@ -100,23 +112,28 @@ make iac           # les trois d'un coup
 
 | Local (`make up`) | GCP (`infra/terraform`) |
 |---|---|
-| conteneur `pgvector/pgvector:pg16` | AlloyDB (cluster + primaire, IP privée) |
-| conteneur `redis:7-alpine` | Memorystore (Private Service Access) |
+| conteneur `pgvector/pgvector:pg16` | Cloud SQL PostgreSQL + `pgvector`, IP privée |
 | `logs/runs/*.jsonl` | bucket GCS versionné + rétention |
+| `make ingest` | Cloud Run Job, même image, même code |
 | `python -m arp.mcp` | Cloud Run v2, direct VPC egress, SA dédié |
-| `python -m arp.api` (console) | Cloud Run v2, ingress interne, invoker vide |
+| `python -m arp.api` (console) | Cloud Run v2, origines CORS nommées |
 | console statique (nginx) | Cloud Run v2, bundle statique, sans secret ni VPC |
 
-Le DSN AlloyDB transite par **Secret Manager**, jamais par une variable d'env en
-clair. Le service Cloud Run n'est **pas** invocable anonymement : `invoker_members`
-est vide par défaut, chaque appelant doit être nommé explicitement.
+Le DSN transite par **Secret Manager**, jamais par une variable d'environnement
+en clair, et le mot de passe est masqué dans les journaux. La console ne connaît
+pas l'URL de l'API à la compilation : son entrypoint réécrit `/config.js` au
+démarrage, pour qu'une même image serve tous les environnements.
+
+Le premier dessin visait AlloyDB et Memorystore. Cloud SQL les remplace parce
+que le POC ne demandait ni la capacité ni le prix d'AlloyDB, et Redis a été
+retiré faute d'usage réel : le cluster coûtait plus que ce qu'il servait.
 
 **Outils.** `tofu` (OpenTofu) est le défaut ; `export TF=terraform` pour utiliser
 Terraform HashiCorp. La validation K8s passe par `kubeconform` en conteneur car
 `kubectl --dry-run=client` exige un API server joignable.
 
-**Non déployé.** Aucun bloc `backend` n'est défini et aucun `apply` n'est lancé :
-l'IaC est un livrable de conception, validé syntaxiquement et schématiquement.
+**État distant.** L'état reste local, sans bloc `backend` : un seul opérateur,
+un seul environnement. C'est à revoir dès qu'une deuxième personne applique.
 
 ## LLM provider
 
@@ -135,6 +152,7 @@ le RAG à son plafond.
 
 Phases 0-5 livrées : fondation + spec, socle, `product-enricher`,
 `customer-assistant`, IaC GCP, et la **console web** (API SSE + front Vue 3 +
-index des runs). Détail des tâches dans
+index des runs). Le tout tourne sur Cloud Run en europe-west1 pour la période de
+démonstration, avec Gemini 2.5 Flash sur Vertex AI. Détail des tâches dans
 `docs/superpowers/plans/2026-07-23-agentic-retail-platform.md` et
 `docs/superpowers/plans/2026-07-23-web-console.md`.
