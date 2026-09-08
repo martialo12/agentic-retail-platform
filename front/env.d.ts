@@ -12,4 +12,6 @@ interface ImportMeta {
 // start-up. Absent in development, where the Vite variable takes over.
 interface Window {
   __ARP_API_BASE__?: string
+  // Identifiant de mesure GA4 (G-XXXXXXXXXX). Absent = aucune mesure.
+  __ARP_GA_ID__?: string
 }
