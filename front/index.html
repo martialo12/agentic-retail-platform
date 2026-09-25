@@ -5,6 +5,22 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Console socle · arp</title>
+    <meta name="description" content="Un socle agentique réutilisable pour l'IA générative retail sur GCP. Autorisations, refus d'outils, escalade humaine et audit, visibles en direct sur chaque run." />
+    <!-- Social preview (LinkedIn, Slack…). The scrapers want absolute URLs,
+         and the public origin is only known when the page is served: nginx
+         substitutes __ARP_PUBLIC_ORIGIN__ per request (see nginx.conf). -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:site_name" content="Agentic Retail Platform" />
+    <meta property="og:title" content="Agentic Retail Platform : la console de démo" />
+    <meta property="og:description" content="Un socle qui gouverne l'IA, pas un chatbot de plus. Demandez un remboursement et regardez le run s'arrêter avant même l'appel au modèle : autorisations, refus, escalade et audit, en direct." />
+    <meta property="og:url" content="__ARP_PUBLIC_ORIGIN__/" />
+    <meta property="og:image" content="__ARP_PUBLIC_ORIGIN__/og.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="2400" />
+    <meta property="og:image:height" content="1260" />
+    <meta property="og:image:alt" content="Un socle qui gouverne l'IA, pas un chatbot de plus. Console de démo de l'Agentic Retail Platform." />
+    <meta name="twitter:card" content="summary_large_image" />
     <!-- Runtime configuration, rewritten by the container at start-up. Must load
          before the bundle, and stay uncached so a redeploy takes effect. -->
     <script src="/config.js"></script>

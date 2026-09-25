@@ -1,0 +1,57 @@
+<!doctype html>
+<!--
+  Source of the social-preview card served at /og.png by the console.
+  Re-render after editing (fonts come from front/node_modules, so run
+  `make front-install` first):
+
+    chrome --headless=new --disable-gpu --hide-scrollbars \
+      --allow-file-access-from-files --force-device-scale-factor=2 \
+      --window-size=1200,630 --screenshot=front/public/og.png \
+      file://$PWD/front/social/og-card.html
+-->
+<html lang="fr"><head><meta charset="utf-8">
+<style>
+@font-face{font-family:'Bricolage';src:url('../node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2') format('woff2');font-weight:200 800}
+@font-face{font-family:'Plex Mono';src:url('../node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2') format('woff2');font-weight:500}
+@font-face{font-family:'Plex Sans';src:url('../node_modules/@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-400-normal.woff2') format('woff2');font-weight:400}
+@font-face{font-family:'Plex Sans';src:url('../node_modules/@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-500-normal.woff2') format('woff2');font-weight:500}
+:root{--ink:#1a1712;--canvas:#fbfaf7;--muted:#a59d8e;--rule:#3a342b;--ok:#2f9a75;--stamp:#e07a2a;--stamp-wash:#fbeee0}
+*{box-sizing:border-box;margin:0}
+html,body{width:1200px;height:630px;overflow:hidden}
+body{background:var(--ink);color:var(--canvas);font-family:'Plex Sans',sans-serif;-webkit-font-smoothing:antialiased;position:relative}
+.grid{position:absolute;inset:0;background-image:linear-gradient(rgba(251,250,247,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(251,250,247,.045) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse at 20% 30%,#000 30%,transparent 80%)}
+.card{position:absolute;inset:0;padding:64px 72px;display:flex;flex-direction:column;justify-content:space-between}
+.top{display:flex;align-items:center;gap:18px}
+.mark{width:52px;height:52px}
+.eyebrow{font-family:'Plex Mono',monospace;font-size:17px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:'Bricolage',sans-serif;font-weight:600;font-size:80px;line-height:1.06;letter-spacing:-.025em;max-width:20ch;margin-top:8px}
+h1 em{font-style:normal;color:var(--stamp)}
+.lede{font-size:27px;line-height:1.45;color:#cfc8bb;max-width:38ch;margin-top:32px}
+.bottom{display:flex;align-items:flex-end;justify-content:space-between;border-top:1px solid var(--rule);padding-top:24px}
+.layers{display:flex;gap:10px}
+.layers span{font-family:'Plex Mono',monospace;font-size:16px;font-weight:500;letter-spacing:.04em;color:#e5dfd3;border:1px solid var(--rule);border-radius:999px;padding:7px 14px}
+.trace{font-family:'Plex Mono',monospace;font-size:16px;color:var(--muted);display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.trace div{display:flex;align-items:center;gap:10px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--ok)}
+.diamond{width:10px;height:10px;background:var(--stamp);transform:rotate(45deg)}
+.trace b{color:#e5dfd3;font-weight:500}
+</style></head><body>
+<div class="grid"></div>
+<div class="card">
+  <div>
+    <div class="top">
+      <svg class="mark" viewBox="0 0 48 48"><rect width="48" height="48" rx="11" fill="#2a251d"/><rect x="22.6" y="9" width="2.8" height="30" rx="1.4" fill="#5a5245"/><circle cx="24" cy="15" r="4" fill="#2f9a75"/><rect x="19.4" y="27.2" width="9.2" height="9.2" rx="1.6" transform="rotate(45 24 31.8)" fill="#e07a2a"/></svg>
+      <p class="eyebrow">Agentic Retail Platform · console de démo</p>
+    </div>
+    <h1>Un socle qui <em>gouverne</em> l'IA,<br>pas un chatbot de plus.</h1>
+    <p class="lede">Autorisations, refus d'outils, escalade humaine et audit complet, visibles en direct sur chaque run.</p>
+  </div>
+  <div class="bottom">
+    <div class="layers"><span>Registry</span><span>Policy</span><span>MCP</span><span>LangGraph</span><span>RAG</span><span>LLMOps</span><span>GCP</span></div>
+    <div class="trace">
+      <div><span class="dot"></span><b>lookup_order</b> autorisé</div>
+      <div><span class="diamond"></span><b>refund</b> escalade avant l'appel modèle</div>
+    </div>
+  </div>
+</div>
+</body></html>
